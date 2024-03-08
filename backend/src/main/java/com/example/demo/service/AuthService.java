@@ -10,6 +10,5 @@ import org.springframework.stereotype.Service;
 
 @Service
 public interface AuthService {
-    public ResponseEntity<?> createNewUser(UserRegistrationDTO userRegistrationDTO);
     public ResponseEntity<?> createAuthToken(JwtRequestDTO authRequest);
 }

@@ -1,4 +1,4 @@
-package com.example.demo.entity.user;
+package com.example.demo.entity;
 
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -6,6 +6,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import java.util.Collection;
 import java.util.Collections;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -15,8 +16,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-@Entity
 @Data
+@Entity
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "person")
@@ -24,9 +25,21 @@ public class User implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Column(nullable = false, unique = true)
     private String email;
+
+    @Column(nullable = false)
     private String password;
+
+    @Column(nullable = false)
     private String username;
+
+    @Column(name = "is_enabled", nullable = false)
+    private Boolean enabled = false;
+
+    @Column(nullable = false, unique = true)
+    private String link;
 
     public User(String email,
                 String password,
@@ -34,6 +47,7 @@ public class User implements UserDetails {
         this.email = email;
         this.password = password;
         this.username = userName;
+        this.enabled = false;
     }
 
     @Override
@@ -58,7 +72,7 @@ public class User implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return false;
+        return this.enabled;
     }
 }
 

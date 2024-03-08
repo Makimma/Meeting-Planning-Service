@@ -40,8 +40,7 @@ public class SecurityConfig {
                 .cors(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(request -> {
                     request.requestMatchers(
-                            "/api/v*/registration",
-                            "/api/v*/hello",
+                            "/api/v*/registration/**",
                             "/api/v*/auth"
                     ).permitAll();
                 request.anyRequest().authenticated();})

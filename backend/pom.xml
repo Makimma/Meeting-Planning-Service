@@ -76,6 +76,12 @@
 			<version>1.76</version>
 			<scope>runtime</scope>
 		</dependency>
+        <dependency>
+            <groupId>commons-validator</groupId>
+            <artifactId>commons-validator</artifactId>
+            <version>1.3.1</version>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/org.springframework/spring-context-support -->
 	</dependencies>
 
 	<build>

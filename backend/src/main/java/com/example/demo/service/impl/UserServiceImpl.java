@@ -1,6 +1,6 @@
 package com.example.demo.service.impl;
 
-import com.example.demo.entity.user.User;
+import com.example.demo.entity.User;
 import com.example.demo.repository.UserRepository;
 import com.example.demo.service.UserService;
 
@@ -21,6 +21,11 @@ public class UserServiceImpl implements UserService {
     @Autowired
     public UserServiceImpl(UserRepository userRepository) {
         this.userRepository = userRepository;
+    }
+
+    @Override
+    public void enableUser(String email) {
+        userRepository.enableUser(email);
     }
 
     public Optional<User> findByEmail(String email) {

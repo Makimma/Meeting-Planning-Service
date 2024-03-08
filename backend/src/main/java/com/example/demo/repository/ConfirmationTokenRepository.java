@@ -1,24 +1,24 @@
 package com.example.demo.repository;
 
-import com.example.demo.entity.User;
+import com.example.demo.entity.ConfirmationToken;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.util.Date;
 import java.util.Optional;
 
 import jakarta.transaction.Transactional;
 
 @Repository
-public interface UserRepository extends JpaRepository<User, Long> {
-    Optional<User> findByEmail(String email);
-    Optional<User> findByLink(String link);
+public interface ConfirmationTokenRepository extends JpaRepository<ConfirmationToken, Long> {
+
+    public Optional<ConfirmationToken> findByToken(String token);
 
     @Transactional
     @Modifying
-    @Query("UPDATE User a " +
-            "SET a.enabled = TRUE WHERE a.email = ?1")
-    void enableUser(String email);
+    @Query("UPDATE ConfirmationToken c SET c.confirmedAt = ?2 WHERE c.token = ?1")
+    public int updateConfirmedAt(String token, Date date);
 }

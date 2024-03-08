@@ -15,6 +15,7 @@ import javax.crypto.spec.SecretKeySpec;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureException;
 
 @Component
 public class JwtTokenUtils {
@@ -44,12 +45,12 @@ public class JwtTokenUtils {
     }
 
     private Claims getAllClaimsFromToken(String jws) {
-        return
-                Jwts.parser()
+        return Jwts.parser()
                 .verifyWith(secretKey)
                 .build()
                 .parseSignedClaims(jws)
                 .getPayload();
+
     }
 
     public Collection<? extends GrantedAuthority> getRoles(String jwt) {
