@@ -1,6 +1,6 @@
 package com.example.demo.controller;
 
-import com.example.demo.dto.JwtRequestDTO;
+import com.example.demo.dto.AuthRequestDTO;
 import com.example.demo.service.AuthService;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,8 +24,8 @@ public class AuthController {
     }
 
     @PostMapping()
-    public ResponseEntity<?> createAuthToken(@RequestBody JwtRequestDTO jwtRequestDTO) {
-        return authService.createAuthToken(jwtRequestDTO);
+    public ResponseEntity<?> createAuthToken(@RequestBody AuthRequestDTO authRequestDTO) {
+        return authService.createAuthToken(authRequestDTO);
     }
 
     @GetMapping("/hello") //test endpoint

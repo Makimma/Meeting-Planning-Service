@@ -15,10 +15,10 @@ import jakarta.transaction.Transactional;
 @Repository
 public interface ConfirmationTokenRepository extends JpaRepository<ConfirmationToken, Long> {
 
-    public Optional<ConfirmationToken> findByToken(String token);
+    Optional<ConfirmationToken> findByToken(String token);
 
     @Transactional
     @Modifying
     @Query("UPDATE ConfirmationToken c SET c.confirmedAt = ?2 WHERE c.token = ?1")
-    public int updateConfirmedAt(String token, Date date);
+    int updateConfirmedAt(String token, Date date);
 }

@@ -77,11 +77,7 @@ public class RegistrationServiceImpl implements RegistrationService {
                             "Некорректный пароль"),
                     HttpStatus.BAD_REQUEST);
         }
-        //TODO: Сделать доп проверку что пользователь не имеет enabled = true в БД.
-        // Если время истекло, то можно(надо спросить gpt)
-        // Если имеет то отредачить пароль(это не надо делать, тк ниже в уже есть код)
-        // Придумал: Надо при регитсрации смотреть на expiresAt и вообще наличие такого пользователя в системе
-        // Если expiresAt истек, то можно продлить его
+
         Optional<User> existingUser = userRepository.findByEmail(userRegistrationDTO.getEmail());
         if (existingUser.isPresent()) {
             return new ResponseEntity<>(

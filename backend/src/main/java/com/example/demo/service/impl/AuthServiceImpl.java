@@ -1,7 +1,7 @@
 package com.example.demo.service.impl;
 
-import com.example.demo.dto.JwtRequestDTO;
-import com.example.demo.dto.JwtResponseDTO;
+import com.example.demo.dto.AuthRequestDTO;
+import com.example.demo.dto.AuthResponseDTO;
 import com.example.demo.exception.AppError;
 import com.example.demo.service.AuthService;
 import com.example.demo.service.UserService;
@@ -31,17 +31,17 @@ public class AuthServiceImpl implements AuthService {
         this.jwtTokenUtils = jwtTokenUtils;
     }
 
-    public ResponseEntity<?> createAuthToken(JwtRequestDTO jwtRequestDTO) {
+    public ResponseEntity<?> createAuthToken(AuthRequestDTO authRequestDTO) {
         try {
-            authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(jwtRequestDTO.getEmail(), jwtRequestDTO.getPassword()));
+            authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(authRequestDTO.getEmail(), authRequestDTO.getPassword()));
         } catch (BadCredentialsException e) {
             return new ResponseEntity<>(
                     new AppError(HttpStatus.BAD_REQUEST.value(),
                     "Invalid username or password"),
                     HttpStatus.BAD_REQUEST);
         }
-        UserDetails userDetails = userService.loadUserByUsername(jwtRequestDTO.getEmail());
-        String token = jwtTokenUtils.generateToken(userDetails, jwtRequestDTO.getEmail());
-        return ResponseEntity.ok(new JwtResponseDTO(token));
+        UserDetails userDetails = userService.loadUserByUsername(authRequestDTO.getEmail());
+        String token = jwtTokenUtils.generateToken(userDetails, authRequestDTO.getEmail());
+        return ResponseEntity.ok(new AuthResponseDTO(token));
     }
 }

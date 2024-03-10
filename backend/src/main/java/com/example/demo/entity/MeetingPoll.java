@@ -1,5 +1,7 @@
 package com.example.demo.entity;
 
+import com.example.demo.dto.MeetingPollDTO;
+
 import java.util.Date;
 
 import jakarta.persistence.Column;
@@ -18,13 +20,12 @@ import lombok.NoArgsConstructor;
 @Table(name = "meeting_poll")
 @NoArgsConstructor
 public class MeetingPoll {
-    //TODO: constructor
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(nullable = false)
-    private String name;
+    private String title;
 
     @Column(nullable = false)
     private int duration;
@@ -45,16 +46,23 @@ public class MeetingPoll {
     @Column(nullable = false)
     private boolean isActive = true;
 
-    public MeetingPoll(String name,
+    public MeetingPoll(String title,
                        int duration,
                        String description,
                        User user,
                        Location location) {
-        this.name = name;
+        this.title = title;
         this.duration = duration;
         this.description = description;
         this.user = user;
         this.location = location;
+        this.createdAt = new Date();
+    }
+
+    public MeetingPoll(MeetingPollDTO meetingPollDTO) {
+        this.title = meetingPollDTO.getTitle();
+        this.duration = meetingPollDTO.getDuration();
+        this.description = meetingPollDTO.getDescription();
         this.createdAt = new Date();
     }
 }
