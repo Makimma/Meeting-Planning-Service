@@ -1,5 +1,6 @@
 package com.example.demo.entity;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 
 import jakarta.persistence.Column;
@@ -25,9 +26,9 @@ public class MeetingPollTimeSlot {
     private MeetingPoll meetingPoll;
 
     @Column(nullable = false)
-    private Date beginAt;
+    private LocalDateTime beginAt;
 
     @Column(nullable = false)
-    private Date endAt;
+    private LocalDateTime endAt;
 
 }

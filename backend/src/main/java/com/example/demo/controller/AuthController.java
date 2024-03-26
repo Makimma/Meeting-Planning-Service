@@ -11,7 +11,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-
 @RestController
 @RequestMapping("/api/v1/auth")
 public class AuthController {
@@ -23,13 +22,13 @@ public class AuthController {
         this.authService = authService;
     }
 
-    @PostMapping()
+    @PostMapping
     public ResponseEntity<?> createAuthToken(@RequestBody AuthRequestDTO authRequestDTO) {
         return authService.createAuthToken(authRequestDTO);
     }
 
-    @GetMapping("/hello") //test endpoint
-    public String hello() {
-        return "hello";
-    }
+//    @GetMapping("/hello") //test endpoint
+//    public String hello() {
+//        return "hello";
+//    }
 }

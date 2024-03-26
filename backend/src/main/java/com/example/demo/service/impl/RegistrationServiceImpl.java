@@ -1,6 +1,6 @@
 package com.example.demo.service.impl;
 
-import com.example.demo.dto.UserRegistrationDTO;
+import com.example.demo.dto.RegistrationRequestDTO;
 import com.example.demo.entity.ConfirmationToken;
 import com.example.demo.entity.User;
 import com.example.demo.exception.AppError;
@@ -46,17 +46,9 @@ public class RegistrationServiceImpl implements RegistrationService {
 
     @Override
     @Transactional
-    public ResponseEntity<?> createNewUser(UserRegistrationDTO userRegistrationDTO) throws MessagingException {
+    public ResponseEntity<?> createNewUser(RegistrationRequestDTO registrationRequestDTO) throws MessagingException {
         String emailRegex = "^(?=.{1,64}@)[A-Za-z0-9_-]+(\\.[A-Za-z0-9_-]+)*@[^-][A-Za-z0-9-]+(\\.[A-Za-z0-9-]+)*(\\.[A-Za-z]{2,})$";
-        /**
-         * It allows numeric values from 0 to 9.
-         * Both uppercase and lowercase letters from a to z are allowed.
-         * Allowed are underscore “_”, hyphen “-“, and dot “.”
-         * Dot isn’t allowed at the start and end of the local part.
-         * Consecutive dots aren’t allowed.
-         * For the local part, a maximum of 64 characters are allowed.
-         */
-        if (!Pattern.matches(emailRegex, userRegistrationDTO.getEmail())) {
+        if (!Pattern.matches(emailRegex, registrationRequestDTO.getEmail())) {
             return new ResponseEntity<>(
                     new AppError(HttpStatus.BAD_REQUEST.value(),
                             "Некорректный адрес электронной почты"),
@@ -64,33 +56,32 @@ public class RegistrationServiceImpl implements RegistrationService {
         }
 
         String passwordRegex = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=])(?=\\S+$).{8,32}$";
-        /**
-         * (?=.*[a-z]): makes sure that there is at least one small letter
-         * (?=.*[A-Z]): needs at least one capital letter
-         * (?=.*\\d): requires at least one digit
-         * (?=.*[@#$%^&+=]): provides a guarantee of at least one special symbol
-         * .{8,20}: imposes the minimum length of 8 characters and the maximum length of 20 characters
-         */
-        if (!Pattern.matches(passwordRegex, userRegistrationDTO.getPassword())) {
+        if (!Pattern.matches(passwordRegex, registrationRequestDTO.getPassword())) {
             return new ResponseEntity<>(
                     new AppError(HttpStatus.BAD_REQUEST.value(),
                             "Некорректный пароль"),
                     HttpStatus.BAD_REQUEST);
         }
 
-        Optional<User> existingUser = userRepository.findByEmail(userRegistrationDTO.getEmail());
+        Optional<User> existingUser = userRepository.findByEmail(registrationRequestDTO.getEmail());
         if (existingUser.isPresent()) {
-            return new ResponseEntity<>(
-                    new AppError(HttpStatus.BAD_REQUEST.value(),
-                            "Пользователь с таким адресом электронной почты уже существует"),
-                    HttpStatus.BAD_REQUEST);
+            if (existingUser.get().isEnabled()) {
+                return new ResponseEntity<>(
+                        new AppError(HttpStatus.BAD_REQUEST.value(),
+                                "Пользователь с таким адресом электронной почты уже существует"),
+                        HttpStatus.BAD_REQUEST);
+            } else {
+                confirmationTokenService.deleteByUserId(existingUser.get().getId());
+                userService.deleteById(existingUser.get().getId());
+            }
         }
+
         User user = new User(
-                userRegistrationDTO.getEmail(),
-                userRegistrationDTO.getPassword(),
-                userRegistrationDTO.getUsername()
+                registrationRequestDTO.getEmail(),
+                registrationRequestDTO.getPassword(),
+                registrationRequestDTO.getUsername()
         );
-        user.setPassword(passwordEncoder.encode(userRegistrationDTO.getPassword()));
+        user.setPassword(passwordEncoder.encode(registrationRequestDTO.getPassword()));
 
         String link = user.getEmail().substring(0, user.getEmail().indexOf("@"));
         int i = 1;
@@ -113,15 +104,15 @@ public class RegistrationServiceImpl implements RegistrationService {
         );
         confirmationTokenService.saveConfirmationToken(confirmationToken);
 
+
+        //TODO: Change confirmation link
         String confirmationLink = "http://localhost:8080/api/v1/registration/confirm?token=" + token;
         emailSenderService.sendEmail(user.getEmail(), "Подтверждение регистрации", confirmationLink);
-        return new ResponseEntity<>(
-                new AppError(HttpStatus.OK.value(),
-                        "Отправлена ссылка для подтверждения"),
-                HttpStatus.OK);
+        return new ResponseEntity<>("Отправлена ссылка для подтверждения", HttpStatus.OK);
     }
 
 
+    @Override
     @Transactional
     public ResponseEntity<?> confirmToken(String token) {
         ConfirmationToken confirmationToken = confirmationTokenService.getToken(token).orElse(null);
@@ -148,9 +139,6 @@ public class RegistrationServiceImpl implements RegistrationService {
 
         confirmationTokenService.setConfirmedAt(token);
         userService.enableUser(confirmationToken.getUser().getEmail());
-        return new ResponseEntity<>(
-                new AppError(HttpStatus.OK.value(),
-                        "confirmed"),
-                HttpStatus.OK);
+        return new ResponseEntity<>("confirmed", HttpStatus.OK);
     }
 }

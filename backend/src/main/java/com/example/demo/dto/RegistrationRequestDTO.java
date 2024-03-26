@@ -3,8 +3,8 @@ package com.example.demo.dto;
 import lombok.Data;
 
 @Data
-public class UserRegistrationDTO {
+public class RegistrationRequestDTO {
     private String username;
     private String email;
-    public String password;
+    private String password;
 }

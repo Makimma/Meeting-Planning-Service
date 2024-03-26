@@ -1,7 +1,5 @@
 package com.example.demo.entity;
 
-import java.util.Date;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -10,20 +8,24 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
 @Entity
-@Table(name = "selected_meeting_poll_time_slot")
-public class SelectedMeetingPollTimeSlot {
+@Table(name = "meeting_poll_vote")
+@AllArgsConstructor
+@NoArgsConstructor
+public class MeetingPollVote {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "meeting_poll_id")
-    private MeetingPoll meetingPoll;
+    @JoinColumn(name = "time_slot_id")
+    private MeetingPollTimeSlot meetingPollTimeSlot;
 
     @Column(nullable = false)
     private String registeredName;
@@ -31,9 +33,11 @@ public class SelectedMeetingPollTimeSlot {
     @Column(nullable = false)
     private String registeredEmail;
 
-    @Column(nullable = false)
-    private Date beginAt;
-
-    @Column(nullable = false)
-    private Date endAt;
+    public MeetingPollVote(MeetingPollTimeSlot meetingPollTimeSlot,
+                           String registeredName,
+                           String registeredEmail) {
+        this.meetingPollTimeSlot = meetingPollTimeSlot;
+        this.registeredName = registeredName;
+        this.registeredEmail = registeredEmail;
+    }
 }

@@ -1,6 +1,6 @@
 jwt:
   secret: 984hg493grt67m6thr0429uruj2309yh9gjhc763fe87t3f89723gf
-  lifetime: 30m
+  lifetime: 300m
 spring:
   datasource:
     url: jdbc:postgresql://localhost:5432/MeetingPlanningService
@@ -20,3 +20,22 @@ spring:
       mail.smtp:
         auth: true
         starttls.enable: true
+#  security:
+#    oauth2:
+#      client:
+#        registration:
+#          google:
+#            client-id: 1090063756103-f59en6qkrt6hvjeecgsl2c1n6ge08eoj.apps.googleusercontent.com
+#            client-secret: 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
+#            scope: https://www.googleapis.com/auth/calendar
+#        provider:
+#          google:
+#            authorization-uri: https://accounts.google.com/o/oauth2/v2/auth
+#            token-uri: https://oauth2.googleapis.com/token
+#            user-info-uri: https://openidconnect.googleapis.com/v1/userinfo
+#            user-name-attribute: sub
+#logging:
+#  level:
+#    org:
+#      springframework:
+#        security: TRACE

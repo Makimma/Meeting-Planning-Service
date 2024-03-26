@@ -1,6 +1,6 @@
 package com.example.demo.controller;
 
-import com.example.demo.dto.UserRegistrationDTO;
+import com.example.demo.dto.RegistrationRequestDTO;
 import com.example.demo.service.RegistrationService;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,12 +24,12 @@ public class RegistrationController {
             RegistrationService registrationService) {
         this.registrationService = registrationService;
     }
-    @PostMapping()
-    public ResponseEntity<?> createUser(@RequestBody UserRegistrationDTO userRegistrationDTO) throws MessagingException {
-        return registrationService.createNewUser(userRegistrationDTO);
+    @PostMapping
+    public ResponseEntity<?> createUser(@RequestBody RegistrationRequestDTO registrationRequestDTO) throws MessagingException {
+        return registrationService.createNewUser(registrationRequestDTO);
     }
 
-    @GetMapping("/confirm")
+    @GetMapping("/confirmation")
     public ResponseEntity<?> confirm(@RequestParam String token) {
         return registrationService.confirmToken(token);
     }

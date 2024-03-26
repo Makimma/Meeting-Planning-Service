@@ -35,11 +35,12 @@ public class User implements UserDetails {
     @Column(nullable = false)
     private String username;
 
+    @Column(nullable = false, unique = true)
+    private String link;
+
     @Column(name = "is_enabled", nullable = false)
     private Boolean enabled = false;
 
-    @Column(nullable = false, unique = true)
-    private String link;
 
     public User(String email,
                 String password,

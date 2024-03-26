@@ -10,11 +10,15 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
 @Entity
 @Table(name = "meeting_poll_participant")
+@AllArgsConstructor
+@NoArgsConstructor
 public class MeetingPollParticipant {
 
     @Id
@@ -22,7 +26,7 @@ public class MeetingPollParticipant {
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "meeting_poll_id")
+    @JoinColumn(name = "poll_event_id")
     private MeetingPoll meetingPoll;
 
     @Column(nullable = false)
@@ -31,6 +35,9 @@ public class MeetingPollParticipant {
     @Column(nullable = false)
     private String participantEmail;
 
-    @Column(nullable = false)
-    private Date createdAt;
+    public MeetingPollParticipant(MeetingPoll meetingPoll, String participantName, String participantEmail) {
+        this.meetingPoll = meetingPoll;
+        this.participantName = participantName;
+        this.participantEmail = participantEmail;
+    }
 }
