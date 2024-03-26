@@ -11,31 +11,3 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
-  mail:
-    host: smtp.gmail.com
-    port: 587
-    username: wifidomru5@gmail.com
-    password: zdbfrsqxsnqrvynr
-    properties:
-      mail.smtp:
-        auth: true
-        starttls.enable: true
-#  security:
-#    oauth2:
-#      client:
-#        registration:
-#          google:
-#            client-id: 1090063756103-f59en6qkrt6hvjeecgsl2c1n6ge08eoj.apps.googleusercontent.com
-#            client-secret: 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
-#            scope: https://www.googleapis.com/auth/calendar
-#        provider:
-#          google:
-#            authorization-uri: https://accounts.google.com/o/oauth2/v2/auth
-#            token-uri: https://oauth2.googleapis.com/token
-#            user-info-uri: https://openidconnect.googleapis.com/v1/userinfo
-#            user-name-attribute: sub
-#logging:
-#  level:
-#    org:
-#      springframework:
-#        security: TRACE
