@@ -1,13 +1,13 @@
 package com.example.demo.service.impl;
 
 import com.example.demo.entity.ConfirmationToken;
+import com.example.demo.entity.User;
 import com.example.demo.repository.ConfirmationTokenRepository;
 import com.example.demo.service.ConfirmationTokenService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Date;
 import java.util.Optional;
 
 @Service
@@ -20,22 +20,12 @@ public class ConfirmationTokenServiceImpl implements ConfirmationTokenService {
     }
 
     @Override
-    public void saveConfirmationToken(ConfirmationToken token) {
-        confirmationTokenRepository.save(token);
+    public Optional<ConfirmationToken> findFirstByUserOrderByIdDesc(User user) {
+        return confirmationTokenRepository.findFirstByUserOrderByIdDesc(user);
     }
 
     @Override
-    public Optional<ConfirmationToken> getToken(String token) {
-        return confirmationTokenRepository.findByToken(token);
-    }
-
-    @Override
-    public int deleteByUserId(Long userId) {
-        return confirmationTokenRepository.deleteByUserId(userId);
-    }
-
-    @Override
-    public int setConfirmedAt(String token) {
-        return confirmationTokenRepository.updateConfirmedAt(token, new Date());
+    public ConfirmationToken save(ConfirmationToken token) {
+        return confirmationTokenRepository.save(token);
     }
 }

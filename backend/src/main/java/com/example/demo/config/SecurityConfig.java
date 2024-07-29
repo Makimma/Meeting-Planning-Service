@@ -43,6 +43,7 @@ public class SecurityConfig {
                             "/api/v*/registration/**",
                             "/api/v*/auth"
                     ).permitAll();
+                    request.requestMatchers("/actuator/**").hasRole("ADMIN");
                     request.anyRequest().authenticated();
                 })
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

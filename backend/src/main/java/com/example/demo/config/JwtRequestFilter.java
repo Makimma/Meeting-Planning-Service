@@ -1,6 +1,5 @@
 package com.example.demo.config;
 
-import com.example.demo.exception.AppError;
 import com.example.demo.util.JwtTokenUtils;
 
 import org.springframework.http.HttpStatus;
@@ -33,17 +32,10 @@ public class JwtRequestFilter extends OncePerRequestFilter {
         String email = null;
         String jwt = null;
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
-            jwt = authHeader.substring(7);
-            try {
+                jwt = authHeader.substring(7);
                 email = jwtTokenUtils.getEmail(jwt);
-            } catch (ExpiredJwtException e) {
-                log.error(new AppError(HttpStatus.UNAUTHORIZED.value(),
-                        "Токен просрочен").toString());
-            } catch (Exception e) {
-                log.error(new AppError(HttpStatus.UNAUTHORIZED.value(),
-                        "Невалидный токен").toString());
-            }
         }
+
         if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                     email,

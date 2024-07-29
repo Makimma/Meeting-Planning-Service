@@ -1,11 +1,11 @@
 package com.example.demo.controller;
 
-import com.example.demo.dto.AuthRequestDTO;
+import com.example.demo.request.AuthRequest;
+import com.example.demo.response.AuthResponse;
 import com.example.demo.service.AuthService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -23,8 +23,8 @@ public class AuthController {
     }
 
     @PostMapping
-    public ResponseEntity<?> createAuthToken(@RequestBody AuthRequestDTO authRequestDTO) {
-        return authService.createAuthToken(authRequestDTO);
+    public ResponseEntity<AuthResponse> createAuthToken(@RequestBody AuthRequest authRequest) {
+        return ResponseEntity.ok(authService.createAuthToken(authRequest));
     }
 
 //    @GetMapping("/hello") //test endpoint

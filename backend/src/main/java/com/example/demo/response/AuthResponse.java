@@ -1,10 +1,10 @@
-package com.example.demo.dto;
+package com.example.demo.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
 @Data
 @AllArgsConstructor
-public class AuthResponseDTO {
+public class AuthResponse {
     private String token;
 }

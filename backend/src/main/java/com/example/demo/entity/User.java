@@ -1,26 +1,26 @@
 package com.example.demo.entity;
 
+import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
+import lombok.Builder;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
 @Entity
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "person")
+@Table(name="\"user\"")
 public class User implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -32,24 +32,19 @@ public class User implements UserDetails {
     @Column(nullable = false)
     private String password;
 
+    @NotBlank
     @Column(nullable = false)
     private String username;
 
     @Column(nullable = false, unique = true)
     private String link;
 
-    @Column(name = "is_enabled", nullable = false)
-    private Boolean enabled = false;
+    @Column(nullable = false)
+    private boolean isEnabled = false;
 
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ConfirmationToken> confirmationTokens;
 
-    public User(String email,
-                String password,
-                String userName) {
-        this.email = email;
-        this.password = password;
-        this.username = userName;
-        this.enabled = false;
-    }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -69,11 +64,6 @@ public class User implements UserDetails {
     @Override
     public boolean isCredentialsNonExpired() {
         return false;
-    }
-
-    @Override
-    public boolean isEnabled() {
-        return this.enabled;
     }
 }
 

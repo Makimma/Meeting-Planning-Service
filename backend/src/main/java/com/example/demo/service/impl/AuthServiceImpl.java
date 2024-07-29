@@ -1,9 +1,9 @@
 package com.example.demo.service.impl;
 
-import com.example.demo.dto.AuthRequestDTO;
-import com.example.demo.dto.AuthResponseDTO;
+import com.example.demo.exception.UserNotFoundException;
+import com.example.demo.request.AuthRequest;
+import com.example.demo.response.AuthResponse;
 import com.example.demo.entity.User;
-import com.example.demo.exception.AppError;
 import com.example.demo.service.AuthService;
 import com.example.demo.service.UserService;
 import com.example.demo.util.JwtTokenUtils;
@@ -32,24 +32,19 @@ public class AuthServiceImpl implements AuthService {
         this.jwtTokenUtils = jwtTokenUtils;
     }
 
-    public ResponseEntity<?> createAuthToken(AuthRequestDTO authRequestDTO) {
-        User user = userService.findByEmail(authRequestDTO.getEmail()).orElse(null);
-        if (user == null || !user.isEnabled()) {
-            return new ResponseEntity<>(
-                    new AppError(HttpStatus.BAD_REQUEST.value(),
-                            "Invalid username or password"),
-                    HttpStatus.BAD_REQUEST);
+    public AuthResponse createAuthToken(AuthRequest authRequest) {
+        if (!userService.existsByEmailAndEnabledIsTrue(authRequest.getEmail())) {
+            throw new UserNotFoundException("User not found");
         }
+
         try {
-            authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(authRequestDTO.getEmail(), authRequestDTO.getPassword()));
+            authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(authRequest.getEmail(), authRequest.getPassword()));
         } catch (BadCredentialsException e) {
-            return new ResponseEntity<>(
-                    new AppError(HttpStatus.BAD_REQUEST.value(),
-                    "Invalid username or password"),
-                    HttpStatus.BAD_REQUEST);
+            throw new BadCredentialsException("Invalid username or password");
         }
-        UserDetails userDetails = userService.loadUserByUsername(authRequestDTO.getEmail());
-        String token = jwtTokenUtils.generateToken(userDetails, authRequestDTO.getEmail());
-        return ResponseEntity.ok(new AuthResponseDTO(token));
+
+        UserDetails userDetails = userService.loadUserByUsername(authRequest.getEmail());
+        String token = jwtTokenUtils.generateToken(userDetails, authRequest.getEmail());
+        return new AuthResponse(token);
     }
 }

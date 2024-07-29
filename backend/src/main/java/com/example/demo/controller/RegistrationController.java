@@ -1,15 +1,20 @@
 package com.example.demo.controller;
 
-import com.example.demo.dto.RegistrationRequestDTO;
+import com.example.demo.request.ConfirmationUserRequest;
+import com.example.demo.request.RegistrationRequest;
+import com.example.demo.request.ResendConfirmationRequest;
+import com.example.demo.response.ConfirmationUserResponse;
+import com.example.demo.response.RegistrationResponse;
+import com.example.demo.response.ResendConfirmationResponse;
 import com.example.demo.service.RegistrationService;
 
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.mail.MessagingException;
@@ -20,17 +25,28 @@ public class RegistrationController {
     private final RegistrationService registrationService;
 
     @Autowired
-    public RegistrationController(
-            RegistrationService registrationService) {
+    public RegistrationController(RegistrationService registrationService) {
         this.registrationService = registrationService;
     }
+
     @PostMapping
-    public ResponseEntity<?> createUser(@RequestBody RegistrationRequestDTO registrationRequestDTO) throws MessagingException {
-        return registrationService.createNewUser(registrationRequestDTO);
+    //TODO Убрать исключение, тк обработка на уроне сервиса
+    public ResponseEntity<RegistrationResponse> createUser(@Valid @RequestBody RegistrationRequest registrationRequest) throws MessagingException {
+        return ResponseEntity.ok(registrationService.createNewUser(
+                registrationRequest.getUsername(),
+                registrationRequest.getEmail(),
+                registrationRequest.getPassword()));
     }
 
-    @GetMapping("/confirmation")
-    public ResponseEntity<?> confirm(@RequestParam String token) {
-        return registrationService.confirmToken(token);
+    @PostMapping("/resend-confirmation")
+    public ResponseEntity<ResendConfirmationResponse> resendConfirmation(@Valid @RequestBody ResendConfirmationRequest resendConfirmationRequest) throws MessagingException {
+        return ResponseEntity.ok(registrationService.resendConfirmationToken(resendConfirmationRequest.getEmail()));
+    }
+
+    @PostMapping("/confirmation")
+    public ResponseEntity<ConfirmationUserResponse> confirm(@Valid @RequestBody ConfirmationUserRequest confirmationUserRequest) {
+        return ResponseEntity.ok(registrationService.confirmToken(
+                confirmationUserRequest.getEmail(),
+                confirmationUserRequest.getToken()));
     }
 }

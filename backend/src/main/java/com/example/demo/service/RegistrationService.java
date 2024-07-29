@@ -1,14 +1,15 @@
 package com.example.demo.service;
 
-import com.example.demo.dto.RegistrationRequestDTO;
-
-import org.springframework.http.ResponseEntity;
+import com.example.demo.response.ConfirmationUserResponse;
+import com.example.demo.response.RegistrationResponse;
+import com.example.demo.response.ResendConfirmationResponse;
 import org.springframework.stereotype.Service;
 
 import jakarta.mail.MessagingException;
 
 @Service
 public interface RegistrationService {
-    public ResponseEntity<?> createNewUser(RegistrationRequestDTO registrationRequestDTO) throws MessagingException;
-    public ResponseEntity<?> confirmToken(String token);
+    RegistrationResponse createNewUser(String username, String email, String password) throws MessagingException;
+    ResendConfirmationResponse resendConfirmationToken(String email) throws MessagingException;
+    ConfirmationUserResponse confirmToken(String email, String token);
 }

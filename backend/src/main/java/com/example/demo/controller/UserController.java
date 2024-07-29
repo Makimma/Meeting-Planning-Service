@@ -1,6 +1,7 @@
 package com.example.demo.controller;
 
-import com.example.demo.dto.UserUpdateRequestDTO;
+import com.example.demo.request.UserUpdateRequest;
+import com.example.demo.response.UserInfoResponse;
 import com.example.demo.service.UserService;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,12 +23,12 @@ public class UserController {
     }
 
     @GetMapping("/me")
-    public ResponseEntity<?> getUserInfo() {
-        return userService.getUserInfo();
+    public ResponseEntity<UserInfoResponse> getUserInfo() {
+        return ResponseEntity.ok(userService.getUserInfo());
     }
 
     @PutMapping("/me")
-    public ResponseEntity<?> updateUserInfo(@RequestBody UserUpdateRequestDTO userUpdateRequestDTO) {
-        return userService.updateUserInfo(userUpdateRequestDTO);
+    public ResponseEntity<UserInfoResponse> updateUserInfo(@RequestBody UserUpdateRequest userUpdateRequest) {
+        return ResponseEntity.ok(userService.updateUserInfo(userUpdateRequest));
     }
 }
