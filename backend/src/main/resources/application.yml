@@ -5,14 +5,17 @@ spring:
   mail:
     host: smtp.yandex.ru
     username: planningservice@yandex.ru
-    password: wcrirvtuufdiqovr
-    port: 465
+    password: nxxgejwxwnzxekbe
+    port: 587
     properties:
       mail:
         smtp:
           auth: true
-        starttls:
-          enable: true
+          starttls:
+            enable: true
+          connectiontimeout: 5000
+          timeout: 5000
+          writetimeout: 5000
   datasource:
     url: jdbc:postgresql://localhost:5432/MeetingPlanningService
     username: postgres

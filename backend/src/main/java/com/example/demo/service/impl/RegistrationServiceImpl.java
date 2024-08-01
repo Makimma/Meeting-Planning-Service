@@ -7,6 +7,7 @@ import com.example.demo.repository.UserRepository;
 import com.example.demo.response.ConfirmationUserResponse;
 import com.example.demo.response.RegistrationResponse;
 import com.example.demo.response.ResendConfirmationResponse;
+import com.example.demo.response.SendConfirmationResponse;
 import com.example.demo.service.ConfirmationTokenService;
 import com.example.demo.service.EmailSenderService;
 import com.example.demo.service.RegistrationService;
@@ -83,6 +84,18 @@ public class RegistrationServiceImpl implements RegistrationService {
             throw new TokensNotExpiredException("Token already exist");
         }
 
+        sendConfirmationCode(user.getEmail());
+
+        return RegistrationResponse.builder().timestamp(ZonedDateTime.now()).build();
+    }
+
+    //TODO протестить
+    @Override
+    @Transactional
+    public SendConfirmationResponse sendConfirmationCode(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
         ConfirmationToken confirmationToken = ConfirmationToken.builder()
                 .token(ConfirmationTokenGenerator.generateToken())
                 .user(user)
@@ -91,10 +104,8 @@ public class RegistrationServiceImpl implements RegistrationService {
                 .build();
         confirmationTokenService.save(confirmationToken);
 
-        //TODO: Отправить на почту
-//        emailSenderService.sendEmail(user.getEmail(), "Подтверждение регистрации", token);
-
-        return RegistrationResponse.builder().timestamp(ZonedDateTime.now()).build();
+        emailSenderService.sendEmail(user.getEmail(), "Почтится", confirmationToken.getToken());
+        return SendConfirmationResponse.builder().timestamp(ZonedDateTime.now()).build();
     }
 
     @Override
@@ -112,16 +123,7 @@ public class RegistrationServiceImpl implements RegistrationService {
             throw new TokenIsExpiredException("Invalid token");
         }
 
-        ConfirmationToken confirmationToken = ConfirmationToken.builder()
-                .token(ConfirmationTokenGenerator.generateToken())
-                .user(user)
-                .createdAt(ZonedDateTime.now())
-                .expiresAt(ZonedDateTime.now().plusMinutes(15))
-                .build();
-        confirmationTokenService.save(confirmationToken);
-
-        //TODO: Отправить на почту
-//        emailSenderService.sendEmail(user.getEmail(), "Подтверждение регистрации", token);
+        //TODO Отправить на почту
 
         return ResendConfirmationResponse.builder().timestamp(ZonedDateTime.now()).build();
     }
@@ -152,4 +154,6 @@ public class RegistrationServiceImpl implements RegistrationService {
 
         return ConfirmationUserResponse.builder().timestamp(ZonedDateTime.now()).build();
     }
+
+
 }

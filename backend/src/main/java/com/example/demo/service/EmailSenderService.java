@@ -6,5 +6,5 @@ import jakarta.mail.MessagingException;
 
 @Service
 public interface EmailSenderService {
-    void sendEmail(String to, String subject, String body) throws MessagingException;
+    void sendEmail(String to, String subject, String body);
 }

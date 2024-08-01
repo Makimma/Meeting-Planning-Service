@@ -3,15 +3,16 @@ package com.example.demo.controller;
 import com.example.demo.request.ConfirmationUserRequest;
 import com.example.demo.request.RegistrationRequest;
 import com.example.demo.request.ResendConfirmationRequest;
+import com.example.demo.request.SendConfirmationRequest;
 import com.example.demo.response.ConfirmationUserResponse;
 import com.example.demo.response.RegistrationResponse;
 import com.example.demo.response.ResendConfirmationResponse;
+import com.example.demo.response.SendConfirmationResponse;
 import com.example.demo.service.RegistrationService;
 
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -31,6 +32,7 @@ public class RegistrationController {
 
     @PostMapping
     //TODO Убрать исключение, тк обработка на уроне сервиса
+    //TODO внутри вызывать отправку кода (registrationService.sendConfirmationCode)
     public ResponseEntity<RegistrationResponse> createUser(@Valid @RequestBody RegistrationRequest registrationRequest) throws MessagingException {
         return ResponseEntity.ok(registrationService.createNewUser(
                 registrationRequest.getUsername(),
@@ -43,10 +45,15 @@ public class RegistrationController {
         return ResponseEntity.ok(registrationService.resendConfirmationToken(resendConfirmationRequest.getEmail()));
     }
 
-    @PostMapping("/confirmation")
+    @PostMapping("/confirm")
     public ResponseEntity<ConfirmationUserResponse> confirm(@Valid @RequestBody ConfirmationUserRequest confirmationUserRequest) {
         return ResponseEntity.ok(registrationService.confirmToken(
                 confirmationUserRequest.getEmail(),
                 confirmationUserRequest.getToken()));
+    }
+
+    @PostMapping("/send-confirmation")
+    public ResponseEntity<SendConfirmationResponse> sendConfirmationCode(@Valid @RequestBody SendConfirmationRequest sendConfirmationRequest) {
+        return ResponseEntity.ok(registrationService.sendConfirmationCode(sendConfirmationRequest.getEmail()));
     }
 }
