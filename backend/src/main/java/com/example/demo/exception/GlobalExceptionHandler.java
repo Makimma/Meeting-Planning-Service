@@ -56,6 +56,7 @@ public class GlobalExceptionHandler {
     }
 
 
+    //FIXME удалить тк useless
     @ExceptionHandler(ExpiredJwtException.class)
     public ResponseEntity<Map<String, String>> handleExpiredJwtException(ExpiredJwtException ex) {
         Map<String, String> errors = new HashMap<>();
