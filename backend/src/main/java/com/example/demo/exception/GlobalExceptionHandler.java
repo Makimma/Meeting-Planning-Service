@@ -34,8 +34,8 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errors, HttpStatus.CONFLICT);
     }
 
-    @ExceptionHandler(TokensNotExpiredException.class)
-    public ResponseEntity<Map<String, String>> handleTokensNotExpiredException(TokensNotExpiredException ex) {
+    @ExceptionHandler(CodeNotExpiredException.class)
+    public ResponseEntity<Map<String, String>> handleCodeNotExpiredException(CodeNotExpiredException ex) {
         Map<String, String> errors = new HashMap<>();
         errors.put("error", ex.getMessage());
         return new ResponseEntity<>(errors, HttpStatus.CONFLICT);
@@ -48,12 +48,13 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errors, HttpStatus.NOT_FOUND);
     }
 
-    @ExceptionHandler(TokenNotFoundException.class)
-    public ResponseEntity<Map<String, String>> handleTokenNotFoundException(TokensNotExpiredException ex) {
+    @ExceptionHandler(CodeNotFoundException.class)
+    public ResponseEntity<Map<String, String>> handleCodeNotFoundException(CodeNotFoundException ex) {
         Map<String, String> errors = new HashMap<>();
         errors.put("error", ex.getMessage());
         return new ResponseEntity<>(errors, HttpStatus.NOT_FOUND);
     }
+
 
     @ExceptionHandler(ExpiredJwtException.class)
     public ResponseEntity<Map<String, String>> handleExpiredJwtException(ExpiredJwtException ex) {
@@ -69,6 +70,7 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
     }
 
+    //FIXME не факт что появится(удалить)
     @ExceptionHandler(MessagingException.class)
     public ResponseEntity<Map<String, String>> handleMessagingException(MessagingException ex) {
         Map<String, String> errors = new HashMap<>();

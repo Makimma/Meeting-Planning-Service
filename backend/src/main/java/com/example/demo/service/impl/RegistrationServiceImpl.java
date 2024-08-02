@@ -1,14 +1,14 @@
 package com.example.demo.service.impl;
 
 import com.example.demo.exception.*;
-import com.example.demo.entity.ConfirmationToken;
+import com.example.demo.entity.ConfirmationCode;
 import com.example.demo.entity.User;
 import com.example.demo.repository.UserRepository;
 import com.example.demo.response.ConfirmationUserResponse;
 import com.example.demo.response.RegistrationResponse;
-import com.example.demo.response.ResendConfirmationResponse;
+import com.example.demo.response.ResendCodeResponse;
 import com.example.demo.response.SendConfirmationResponse;
-import com.example.demo.service.ConfirmationTokenService;
+import com.example.demo.service.ConfirmationCodeService;
 import com.example.demo.service.EmailSenderService;
 import com.example.demo.service.RegistrationService;
 import com.example.demo.service.UserService;
@@ -22,23 +22,22 @@ import org.springframework.stereotype.Service;
 import java.time.ZonedDateTime;
 import java.util.Optional;
 
-import jakarta.mail.MessagingException;
 import jakarta.transaction.Transactional;
 
 @Service
 public class RegistrationServiceImpl implements RegistrationService {
-    private final ConfirmationTokenService confirmationTokenService;
+    private final ConfirmationCodeService confirmationCodeService;
     private final UserService userService;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final EmailSenderService emailSenderService;
 
     @Autowired
-    public RegistrationServiceImpl(ConfirmationTokenService confirmationTokenService,
+    public RegistrationServiceImpl(ConfirmationCodeService confirmationCodeService,
                                    UserRepository userRepository,
                                    PasswordEncoder passwordEncoder,
                                    UserService userService, EmailSenderService emailSenderService) {
-        this.confirmationTokenService = confirmationTokenService;
+        this.confirmationCodeService = confirmationCodeService;
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.userService = userService;
@@ -62,8 +61,7 @@ public class RegistrationServiceImpl implements RegistrationService {
 
     @Override
     @Transactional
-    //TODO проверить
-    public RegistrationResponse createNewUser(String username, String email, String password) throws MessagingException {
+    public RegistrationResponse createNewUser(String username, String email, String password) {
         Optional<User> existingUser = userRepository.findByEmail(email);
 
         User user;
@@ -79,81 +77,100 @@ public class RegistrationServiceImpl implements RegistrationService {
         user.setLink(createLink(user));
         user = userService.save(user);
 
-        Optional<ConfirmationToken> optionalConfirmationToken = confirmationTokenService.findFirstByUserOrderByIdDesc(user);
+        Optional<ConfirmationCode> optionalConfirmationToken = confirmationCodeService.findFirstByUserOrderByIdDesc(user);
         if (optionalConfirmationToken.isPresent() && optionalConfirmationToken.get().getExpiresAt().plusMinutes(15).isAfter(ZonedDateTime.now())) {
-            throw new TokensNotExpiredException("Token already exist");
+            throw new CodeNotExpiredException("Token already exist");
         }
 
-        sendConfirmationCode(user.getEmail());
+        emailSenderService.sendEmail(email, "Почтится", generateCode(user));
 
         return RegistrationResponse.builder().timestamp(ZonedDateTime.now()).build();
+    }
+
+    @Transactional
+    protected String generateCode(User user) {
+        ConfirmationCode confirmationCode = ConfirmationCode.builder()
+                .code(ConfirmationTokenGenerator.generateToken())
+                .user(user)
+                .createdAt(ZonedDateTime.now())
+                .expiresAt(ZonedDateTime.now().plusMinutes(15))
+                .build();
+        return confirmationCodeService.save(confirmationCode).getCode();
     }
 
     //TODO протестить
     @Override
     @Transactional
-    public SendConfirmationResponse sendConfirmationCode(String email) {
+    public SendConfirmationResponse sendCode(String email) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
-        ConfirmationToken confirmationToken = ConfirmationToken.builder()
-                .token(ConfirmationTokenGenerator.generateToken())
-                .user(user)
-                .createdAt(ZonedDateTime.now())
-                .expiresAt(ZonedDateTime.now().plusMinutes(15))
-                .build();
-        confirmationTokenService.save(confirmationToken);
+        if (!user.isEnabled()) {
+            throw new UsernameNotFoundException("User not found");
+        }
 
-        emailSenderService.sendEmail(user.getEmail(), "Почтится", confirmationToken.getToken());
+        ConfirmationCode currentConfirmationCode = confirmationCodeService.findFirstByUserOrderByIdDesc(user)
+                .orElseThrow(() -> new CodeNotFoundException("Token not found"));
+
+        if (currentConfirmationCode.getConfirmedAt() != null) {
+            throw new CodeExpiredException("Invalid token");
+        }
+
+        emailSenderService.sendEmail(email, "Почтится", generateCode(user));
         return SendConfirmationResponse.builder().timestamp(ZonedDateTime.now()).build();
     }
 
     @Override
     @Transactional
-    public ResendConfirmationResponse resendConfirmationToken(String email) {
+    public ResendCodeResponse resendCode(String email) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
-        ConfirmationToken currentConfirmationToken = confirmationTokenService.findFirstByUserOrderByIdDesc(user)
-                .orElseThrow(() -> new TokenNotFoundException("Token not found"));
+        ConfirmationCode currentConfirmationCode = confirmationCodeService.findFirstByUserOrderByIdDesc(user)
+                .orElseThrow(() -> new CodeNotFoundException("Token not found"));
 
-        if (currentConfirmationToken.getCreatedAt().plusMinutes(1).isAfter(ZonedDateTime.now())) {
-            throw new TokensNotExpiredException("Token already exist");
-        } else if (currentConfirmationToken.getExpiresAt().isBefore(ZonedDateTime.now())) {
-            throw new TokenIsExpiredException("Invalid token");
+        if (currentConfirmationCode.getConfirmedAt() != null) {
+            throw new CodeExpiredException("Invalid token");
         }
 
-        //TODO Отправить на почту
+        if (currentConfirmationCode.getCreatedAt().plusMinutes(1).isAfter(ZonedDateTime.now())) {
+            throw new CodeNotExpiredException("Token already exist");
+        } else if (currentConfirmationCode.getExpiresAt().isBefore(ZonedDateTime.now())) {
+            throw new CodeExpiredException("Invalid token");
+        }
 
-        return ResendConfirmationResponse.builder().timestamp(ZonedDateTime.now()).build();
+        emailSenderService.sendEmail(email, "Почтится", generateCode(user));
+        return ResendCodeResponse.builder().timestamp(ZonedDateTime.now()).build();
     }
 
 
     @Override
     @Transactional
-    public ConfirmationUserResponse confirmToken(String email, String token) {
+    public ConfirmationUserResponse confirmCode(String email, String token) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
-        ConfirmationToken currentConfirmationToken = confirmationTokenService.findFirstByUserOrderByIdDesc(user)
-                .orElseThrow(() -> new TokenNotFoundException("Token not found"));
-
-        if (currentConfirmationToken.getExpiresAt().isBefore(ZonedDateTime.now())) {
-            throw new TokensNotExpiredException("Token is expired");
+        if (user.isEnabled()) {
+            throw new UserAlreadyExistException("User already exist");
         }
 
-        if (!token.equals(currentConfirmationToken.getToken())) {
+        ConfirmationCode currentConfirmationCode = confirmationCodeService.findFirstByUserOrderByIdDesc(user)
+                .orElseThrow(() -> new CodeNotFoundException("Token not found"));
+
+        if (currentConfirmationCode.getExpiresAt().isBefore(ZonedDateTime.now())) {
+            throw new CodeNotExpiredException("Token is expired");
+        }
+
+        if (!token.equals(currentConfirmationCode.getCode())) {
             throw new InvalidTokenException("Invalid token");
         }
 
         user.setEnabled(true);
         userRepository.save(user);
 
-        currentConfirmationToken.setConfirmedAt(ZonedDateTime.now());
-        confirmationTokenService.save(currentConfirmationToken);
+        currentConfirmationCode.setConfirmedAt(ZonedDateTime.now());
+        confirmationCodeService.save(currentConfirmationCode);
 
         return ConfirmationUserResponse.builder().timestamp(ZonedDateTime.now()).build();
     }
-
-
 }

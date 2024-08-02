@@ -1,7 +1,8 @@
 package com.example.demo.service.impl;
 
+import com.example.demo.exception.UserNotFoundException;
 import com.example.demo.response.UserInfoResponse;
-import com.example.demo.request.UserUpdateRequest;
+import com.example.demo.request.UpdateUserRequest;
 import com.example.demo.entity.User;
 import com.example.demo.repository.UserRepository;
 import com.example.demo.service.UserService;
@@ -12,6 +13,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -22,10 +24,13 @@ import jakarta.transaction.Transactional;
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Autowired
-    public UserServiceImpl(UserRepository userRepository) {
+    public UserServiceImpl(UserRepository userRepository,
+                           PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Override
@@ -38,10 +43,8 @@ public class UserServiceImpl implements UserService {
         return userRepository.findByEmailAndIsEnabledIsTrue(email);
     }
 
-
-    //TODO Переименовать метод
     @Override
-    public boolean existsByEmailAndEnabledIsTrue(String email) {
+    public boolean existsByEmailAndIsEnabledIsTrue(String email) {
         return userRepository.existsByEmailAndIsEnabledIsTrue(email);
     }
 
@@ -54,6 +57,8 @@ public class UserServiceImpl implements UserService {
         userRepository.deleteById(userId);
     }
 
+    //FIXME метод принимает id и по нему возвращается пользователя
+    //Для возвращения своих данных использовать другой метод который мб будет использовать этот
     @Override
     public UserInfoResponse getUserInfo() {
         return toUserInfoResponse(userRepository.findByEmail(AuthUtils.getCurrentUserEmail())
@@ -62,7 +67,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public UserInfoResponse updateUserInfo(UserUpdateRequest userUpdateRequest) {
+    public UserInfoResponse updateUserInfo(UpdateUserRequest updateUserRequest) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
 
@@ -71,11 +76,21 @@ public class UserServiceImpl implements UserService {
             throw new UsernameNotFoundException("User not found");
         }
 
-        user.setUsername(userUpdateRequest.getUsername());
+        user.setUsername(updateUserRequest.getUsername());
         userRepository.save(user);
 
         return toUserInfoResponse(user);
     }
+
+    @Override
+    @Transactional
+    public void changePassword(String newPassword) {
+        User user = userRepository.findByEmail(AuthUtils.getCurrentUserEmail())
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+    }
+
 
     @Override
     public Optional<User> findByLink(String userLink) {

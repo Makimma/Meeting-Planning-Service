@@ -1,10 +1,9 @@
 package com.example.demo.service;
 
-import com.example.demo.request.UserUpdateRequest;
+import com.example.demo.request.UpdateUserRequest;
 import com.example.demo.entity.User;
 
 import com.example.demo.response.UserInfoResponse;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Service;
 
@@ -16,7 +15,7 @@ public interface UserService extends UserDetailsService {
 
     Optional<User> findByEmailAndEnabledIsTrue(String email);
 
-    boolean existsByEmailAndEnabledIsTrue(String email);
+    boolean existsByEmailAndIsEnabledIsTrue(String email);
 
     User save(User user);
 
@@ -24,7 +23,9 @@ public interface UserService extends UserDetailsService {
 
     UserInfoResponse getUserInfo();
 
-    UserInfoResponse updateUserInfo(UserUpdateRequest userUpdateRequest);
+    UserInfoResponse updateUserInfo(UpdateUserRequest updateUserRequest);
+
+    void changePassword(String newPassword);
 
     Optional<User> findByLink(String userLink);
 }
