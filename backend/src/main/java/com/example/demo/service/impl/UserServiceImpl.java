@@ -40,12 +40,12 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public Optional<User> findByEmailAndEnabledIsTrue(String email) {
-        return userRepository.findByEmailAndIsEnabledIsTrue(email);
+        return userRepository.findByEmailAndEnabledIsTrue(email);
     }
 
     @Override
-    public boolean existsByEmailAndIsEnabledIsTrue(String email) {
-        return userRepository.existsByEmailAndIsEnabledIsTrue(email);
+    public boolean existsByEmailAndEnabledIsTrue(String email) {
+        return userRepository.existsByEmailAndEnabledIsTrue(email);
     }
 
     @Override
@@ -58,7 +58,7 @@ public class UserServiceImpl implements UserService {
     }
 
     //FIXME метод принимает id и по нему возвращается пользователя
-    //Для возвращения своих данных использовать другой метод который мб будет использовать этот
+    //  FIXME Для возвращения своих данных использовать другой метод который мб будет использовать этот
     @Override
     public UserInfoResponse getUserInfo() {
         return toUserInfoResponse(userRepository.findByEmail(AuthUtils.getCurrentUserEmail())

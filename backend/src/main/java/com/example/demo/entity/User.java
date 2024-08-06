@@ -39,7 +39,7 @@ public class User implements UserDetails {
     private String link;
 
     @Column(nullable = false)
-    private boolean isEnabled = false;
+    private boolean enabled = false;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ConfirmationCode> confirmationCodes;

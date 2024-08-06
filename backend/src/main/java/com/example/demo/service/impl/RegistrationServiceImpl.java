@@ -13,7 +13,7 @@ import com.example.demo.service.EmailSenderService;
 import com.example.demo.service.RegistrationService;
 import com.example.demo.service.UserService;
 
-import com.example.demo.util.ConfirmationTokenGenerator;
+import com.example.demo.util.ConfirmationCodeGenerator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -90,7 +90,7 @@ public class RegistrationServiceImpl implements RegistrationService {
     @Transactional
     protected String generateCode(User user) {
         ConfirmationCode confirmationCode = ConfirmationCode.builder()
-                .code(ConfirmationTokenGenerator.generateToken())
+                .code(ConfirmationCodeGenerator.generateToken())
                 .user(user)
                 .createdAt(ZonedDateTime.now())
                 .expiresAt(ZonedDateTime.now().plusMinutes(15))
@@ -98,7 +98,6 @@ public class RegistrationServiceImpl implements RegistrationService {
         return confirmationCodeService.save(confirmationCode).getCode();
     }
 
-    //TODO протестить
     @Override
     @Transactional
     public SendConfirmationResponse sendCode(String email) {
@@ -130,7 +129,7 @@ public class RegistrationServiceImpl implements RegistrationService {
                 .orElseThrow(() -> new CodeNotFoundException("Token not found"));
 
         if (currentConfirmationCode.getConfirmedAt() != null) {
-            throw new CodeExpiredException("Invalid token");
+            throw new CodeNotExpiredException("Token not found");
         }
 
         if (currentConfirmationCode.getCreatedAt().plusMinutes(1).isAfter(ZonedDateTime.now())) {
@@ -139,11 +138,13 @@ public class RegistrationServiceImpl implements RegistrationService {
             throw new CodeExpiredException("Invalid token");
         }
 
+        //TODO Заменить subject письма и само тело почты
         emailSenderService.sendEmail(email, "Почтится", generateCode(user));
         return ResendCodeResponse.builder().timestamp(ZonedDateTime.now()).build();
     }
 
 
+    //TODO Сделать авторизацию после конфирма
     @Override
     @Transactional
     public ConfirmationUserResponse confirmCode(String email, String token) {

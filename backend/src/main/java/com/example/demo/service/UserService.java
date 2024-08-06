@@ -15,7 +15,7 @@ public interface UserService extends UserDetailsService {
 
     Optional<User> findByEmailAndEnabledIsTrue(String email);
 
-    boolean existsByEmailAndIsEnabledIsTrue(String email);
+    boolean existsByEmailAndEnabledIsTrue(String email);
 
     User save(User user);
 

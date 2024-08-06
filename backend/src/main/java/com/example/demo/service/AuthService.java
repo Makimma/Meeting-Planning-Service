@@ -1,12 +1,12 @@
 package com.example.demo.service;
 
-import com.example.demo.request.AuthRequest;
-
-import com.example.demo.response.AuthResponse;
-import org.springframework.http.ResponseEntity;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.stereotype.Service;
 
 @Service
 public interface AuthService {
-    AuthResponse createAuthToken(AuthRequest authRequest);
+    String authenticateUser(String email, String password);
+    String generateRefreshToken(String email);
+    String refreshAccessToken(HttpServletRequest request, HttpServletResponse response);
 }
