@@ -42,7 +42,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(request -> {
                     request.requestMatchers(
                             "/api/v*/registration/**",
-                            "/api/v*/auth"
+                            "/api/v*/auth/**"
                     ).permitAll();
                     request.requestMatchers("/actuator/**").hasRole("ADMIN");
                     request.anyRequest().authenticated();
