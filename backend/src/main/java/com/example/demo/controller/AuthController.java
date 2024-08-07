@@ -1,9 +1,11 @@
 package com.example.demo.controller;
 
 import com.example.demo.request.AuthRequest;
+import com.example.demo.response.ApiResponse;
 import com.example.demo.response.AuthResponse;
 import com.example.demo.service.AuthService;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +19,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.Duration;
+import java.util.HashMap;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/auth")
@@ -63,7 +67,7 @@ public class AuthController {
     }
 
     @PostMapping("/refresh-token")
-    public ResponseEntity<?> refreshToken(HttpServletRequest request, HttpServletResponse response) {
+    public ResponseEntity<ApiResponse> refreshToken(HttpServletRequest request, HttpServletResponse response) {
         String newAccessToken = authService.refreshAccessToken(request, response);
 
         ResponseCookie accessTokenCookie = ResponseCookie.from("accessToken", newAccessToken)
@@ -76,6 +80,32 @@ public class AuthController {
 
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, accessTokenCookie.toString())
-                .body("Token refreshed");
+                .body(ApiResponse.builder().message("Token refreshed").build());
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout(HttpServletRequest request, HttpServletResponse response) {
+        authService.logout(request, response);
+
+        ResponseCookie deleteAccessTokenCookie = ResponseCookie.from("accessToken", "")
+                .httpOnly(true)
+                .secure(true)
+                .path("/")
+                .maxAge(0)
+                .sameSite("Strict")
+                .build();
+
+        ResponseCookie deleteRefreshTokenCookie = ResponseCookie.from("refreshToken", "")
+                .httpOnly(true)
+                .secure(true)
+                .path("/")
+                .maxAge(0)
+                .sameSite("Strict")
+                .build();
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, deleteAccessTokenCookie.toString())
+                .header(HttpHeaders.SET_COOKIE, deleteRefreshTokenCookie.toString())
+                .body(ApiResponse.builder().message("Logout successful").build());
     }
 }

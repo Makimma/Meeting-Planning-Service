@@ -2,6 +2,9 @@ package com.example.demo.service.impl;
 
 import com.example.demo.entity.RefreshToken;
 import com.example.demo.entity.User;
+import com.example.demo.exception.RefreshTokenExpiredException;
+import com.example.demo.exception.RefreshTokenNotFoundException;
+import com.example.demo.exception.RefreshTokenRevokedException;
 import com.example.demo.exception.UserNotFoundException;
 import com.example.demo.repository.RefreshTokenRepository;
 import com.example.demo.service.AuthService;
@@ -79,31 +82,44 @@ public class AuthServiceImpl implements AuthService {
             for (Cookie cookie : cookies) {
                 if (cookie.getName().equals("refreshToken")) {
                     String refreshTokenValue = cookie.getValue();
-                    //TODO Exception
-                    RefreshToken refreshToken = refreshTokenRepository.findByToken(refreshTokenValue)
-                            .orElseThrow(() -> new RuntimeException("Invalid refresh token"));
 
-                    //TODO Exception
+                    RefreshToken refreshToken = refreshTokenRepository.findByToken(refreshTokenValue)
+                            .orElseThrow(() -> new RefreshTokenNotFoundException("Refresh token not found"));
+
                     if (refreshToken.getExpiresAt().isBefore(ZonedDateTime.now())) {
-                        throw new RuntimeException("Refresh token expired");
+                        throw new RefreshTokenExpiredException("Refresh token expired");
                     }
 
-                    //TODO Exception
                     if (refreshToken.isRevoked()) {
-                        throw new RuntimeException("Refresh token revoked");
+                        throw new RefreshTokenRevokedException("Refresh token revoked");
                     }
 
                     User user = refreshToken.getUser();
                     UserDetails userDetails = userService.loadUserByUsername(user.getEmail());
 
-                    //TODO в контроллере уже в куки
-                    //TODO Optional
                     return jwtTokenUtils.generateToken(userDetails, user.getEmail());
                 }
             }
         }
-        //TODO Exception
-        throw new RuntimeException("Refresh token not found");
+        throw new RefreshTokenNotFoundException("Refresh token not found");
+    }
+
+    @Override
+    public void logout(HttpServletRequest request, HttpServletResponse response) {
+        Cookie[] cookies = request.getCookies();
+        if (cookies != null) {
+            for (Cookie cookie : cookies) {
+                if (cookie.getName().equals("refreshToken")) {
+                    String refreshTokenValue = cookie.getValue();
+                    RefreshToken refreshToken = refreshTokenRepository.findByToken(refreshTokenValue)
+                            .orElseThrow(() -> new RefreshTokenNotFoundException("Invalid refresh token"));
+
+                    refreshToken.setRevoked(true);
+                    refreshTokenRepository.save(refreshToken);
+                }
+            }
+        }
+        throw new RefreshTokenNotFoundException("Refresh token not found");
     }
 
 }

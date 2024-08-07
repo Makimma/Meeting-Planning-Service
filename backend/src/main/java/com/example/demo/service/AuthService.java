@@ -9,4 +9,5 @@ public interface AuthService {
     String authenticateUser(String email, String password);
     String generateRefreshToken(String email);
     String refreshAccessToken(HttpServletRequest request, HttpServletResponse response);
+    void logout(HttpServletRequest request, HttpServletResponse response);
 }
