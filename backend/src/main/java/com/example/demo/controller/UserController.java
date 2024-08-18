@@ -30,12 +30,12 @@ public class UserController {
     }
 
     @PutMapping("/me")
-    public ResponseEntity<UserInfoResponse> updateUserInfo(@RequestBody UpdateUserRequest updateUserRequest) {
+    public ResponseEntity<UserInfoResponse> updateMyInfo(@RequestBody UpdateUserRequest updateUserRequest) {
         return ResponseEntity.ok(userService.updateUserInfo(updateUserRequest));
     }
 
     @PutMapping("/me/new-password")
-    public ResponseEntity<Void> updateNewPassword(@Valid @RequestBody UpdatePasswordRequest updatePasswordRequest) {
+    public ResponseEntity<Void> updateMyPassword(@Valid @RequestBody UpdatePasswordRequest updatePasswordRequest) {
         userService.changePassword(updatePasswordRequest.getPassword());
         return ResponseEntity.ok().build();
     }
