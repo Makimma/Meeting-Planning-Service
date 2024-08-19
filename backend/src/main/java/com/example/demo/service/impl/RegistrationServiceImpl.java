@@ -129,7 +129,7 @@ public class RegistrationServiceImpl implements RegistrationService {
                 .orElseThrow(() -> new CodeNotFoundException("Token not found"));
 
         if (currentConfirmationCode.getConfirmedAt() != null) {
-            throw new CodeNotExpiredException("Token not found");
+            throw new CodeNotExpiredException("Cannot resend confirmation code");
         }
 
         if (currentConfirmationCode.getCreatedAt().plusMinutes(1).isAfter(ZonedDateTime.now())) {
