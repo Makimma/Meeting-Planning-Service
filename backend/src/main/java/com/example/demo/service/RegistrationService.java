@@ -10,6 +10,6 @@ import org.springframework.stereotype.Service;
 public interface RegistrationService {
     RegistrationResponse createNewUser(String username, String email, String password);
     ResendCodeResponse resendCode(String email);
-    ConfirmationUserResponse confirmCode(String email, String token);
+    ConfirmationUserResponse confirmCode(String email, String code);
     SendConfirmationResponse sendCode(String email);
 }

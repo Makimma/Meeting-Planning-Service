@@ -111,8 +111,8 @@ public class RegistrationServiceImpl implements RegistrationService {
         ConfirmationCode currentConfirmationCode = confirmationCodeService.findFirstByUserOrderByIdDesc(user)
                 .orElseThrow(() -> new CodeNotFoundException("Token not found"));
 
-        if (currentConfirmationCode.getConfirmedAt() != null) {
-            throw new CodeExpiredException("Invalid token");
+        if (currentConfirmationCode.getConfirmedAt() == null && currentConfirmationCode.getExpiresAt().isAfter(ZonedDateTime.now())) {
+            throw new CodeExpiredException("Cannot send confirmation code");
         }
 
         emailSenderService.sendEmail(email, "Почтится", generateCode(user));
@@ -143,17 +143,11 @@ public class RegistrationServiceImpl implements RegistrationService {
         return ResendCodeResponse.builder().timestamp(ZonedDateTime.now()).build();
     }
 
-
-    //TODO Сделать авторизацию после конфирма
     @Override
     @Transactional
-    public ConfirmationUserResponse confirmCode(String email, String token) {
+    public ConfirmationUserResponse confirmCode(String email, String code) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
-
-        if (user.isEnabled()) {
-            throw new UserAlreadyExistException("User already exist");
-        }
 
         ConfirmationCode currentConfirmationCode = confirmationCodeService.findFirstByUserOrderByIdDesc(user)
                 .orElseThrow(() -> new CodeNotFoundException("Token not found"));
@@ -162,7 +156,7 @@ public class RegistrationServiceImpl implements RegistrationService {
             throw new CodeNotExpiredException("Token is expired");
         }
 
-        if (!token.equals(currentConfirmationCode.getCode())) {
+        if (!code.equals(currentConfirmationCode.getCode())) {
             throw new InvalidTokenException("Invalid token");
         }
 

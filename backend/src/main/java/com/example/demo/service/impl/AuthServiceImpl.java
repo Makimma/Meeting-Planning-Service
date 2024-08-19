@@ -75,6 +75,10 @@ public class AuthServiceImpl implements AuthService {
         return token;
     }
 
+    public String generateAccessToken(String email) {
+        return jwtTokenUtils.generateToken(userService.loadUserByUsername(email), email);
+    }
+
     @Override
     public String refreshAccessToken(HttpServletRequest request, HttpServletResponse response) {
         Cookie[] cookies = request.getCookies();
