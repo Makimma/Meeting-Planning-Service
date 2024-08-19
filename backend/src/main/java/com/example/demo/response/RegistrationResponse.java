@@ -5,7 +5,6 @@ import lombok.Data;
 
 import java.time.ZonedDateTime;
 
-//FIXME ГПТ как возвращать время
 @Data
 @Builder
 public class RegistrationResponse {

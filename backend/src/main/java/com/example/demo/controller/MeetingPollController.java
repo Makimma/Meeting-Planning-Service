@@ -82,6 +82,7 @@ public class MeetingPollController {
         return ResponseEntity.ok(meetingPollService.getVoteCountsForMeetingPoll(meetingPollId));
     }
 
+    //FIXME переделать
     @PostMapping("/create-from-poll")
     public ResponseEntity<?> createMeetingFromPoll(@RequestBody CreateMeetingFromPollDTO createMeetingFromPollDTO) {
         return meetingPollService.createMeetingFromPoll(createMeetingFromPollDTO);

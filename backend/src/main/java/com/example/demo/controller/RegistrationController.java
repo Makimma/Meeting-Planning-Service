@@ -45,7 +45,7 @@ public class RegistrationController {
     public ResponseEntity<ConfirmationUserResponse> confirm(@Valid @RequestBody ConfirmationUserRequest confirmationUserRequest) {
         return ResponseEntity.ok(registrationService.confirmCode(
                 confirmationUserRequest.getEmail(),
-                confirmationUserRequest.getToken()));
+                confirmationUserRequest.getCode()));
     }
 
     @PostMapping("/send-code")

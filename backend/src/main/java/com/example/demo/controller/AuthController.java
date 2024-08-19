@@ -5,9 +5,9 @@ import com.example.demo.response.ApiResponse;
 import com.example.demo.response.AuthResponse;
 import com.example.demo.service.AuthService;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
@@ -19,8 +19,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.Duration;
-import java.util.HashMap;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/auth")
@@ -40,7 +38,7 @@ public class AuthController {
     }
 
     @PostMapping
-    public ResponseEntity<AuthResponse> createAuthToken(@RequestBody AuthRequest authRequest) {
+    public ResponseEntity<AuthResponse> createAuthToken(@Valid @RequestBody AuthRequest authRequest) {
         String accessToken = authService.authenticateUser(authRequest.getEmail(), authRequest.getPassword());
         String refreshToken = authService.generateRefreshToken(authRequest.getEmail());
 

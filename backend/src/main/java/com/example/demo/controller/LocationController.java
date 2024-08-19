@@ -19,6 +19,7 @@ public class LocationController {
         this.locationService = locationService;
     }
 
+    //FIXME переделать
     @GetMapping
     public ResponseEntity<?> getAllLocations() {
         return new ResponseEntity<>(locationService.getAllLocations(), HttpStatus.OK);
