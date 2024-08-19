@@ -1,11 +1,11 @@
 package com.example.demo.service;
 
 import com.example.demo.dto.CreateMeetingFromPollDTO;
-import com.example.demo.dto.MeetingPollDTO;
-import com.example.demo.dto.MeetingPollResultDTO;
-import com.example.demo.dto.TimeSlotDTO;
-import com.example.demo.dto.VoteDTO;
+import com.example.demo.response.VoteCountResponse;
+import com.example.demo.request.TimeSlotRequest;
+import com.example.demo.request.VoteRequest;
 
+import com.example.demo.response.MeetingPollResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
@@ -13,19 +13,22 @@ import java.util.List;
 
 @Service
 public interface MeetingPollService {
+    MeetingPollResponse createMeetingPoll(String title, String description, int duration, Long locationId, List<TimeSlotRequest> timeSlotRequests);
 
-    ResponseEntity<?> createMeetingPoll(MeetingPollDTO meetingPollDTO);
-    ResponseEntity<?> getMeetingPollInfo(Long meetingPollId);
+    MeetingPollResponse getMeetingPollInfo(Long meetingPollId);
 
-    ResponseEntity<?> deleteMeetingPoll(Long meetingPollId);
+    List<MeetingPollResponse> getMeetingPollsByUser();
 
-    ResponseEntity<?> getAllMeetingPolls();
+    void vote(String userLink, Long meetingPollId, VoteRequest voteRequest);
 
-    ResponseEntity<?> castVote(String userLink, Long meetingPollId, VoteDTO voteDTO);
+    MeetingPollResponse getMeetingPollByUserLinkAndId(String userLink, Long meetingPollId);
 
-    List<TimeSlotDTO> getMeetingPollTimeSlots(Long meetingPollId);
+    void deleteMeetingPoll(Long meetingPollId);
 
-    List<MeetingPollResultDTO> getMeetingPollResults(Long meetingPollId);
+    List<VoteCountResponse> getVoteCountsForMeetingPoll(Long meetingPollId);
 
+    //TODO отсюда
     ResponseEntity<?> createMeetingFromPoll(CreateMeetingFromPollDTO createMeetingFromPollDTO);
+
+    //TODO изменить встречу
 }

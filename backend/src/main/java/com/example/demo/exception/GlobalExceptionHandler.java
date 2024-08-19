@@ -90,9 +90,37 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errors, HttpStatus.FORBIDDEN);
     }
 
+    @ExceptionHandler(LocationNotFoundException.class)
+    public ResponseEntity<Map<String, String>> handleLocationNotFoundException(LocationNotFoundException ex) {
+        Map<String, String> errors = new HashMap<>();
+        errors.put("error", ex.getMessage());
+        return new ResponseEntity<>(errors, HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler(TimeSlotNotFoundException.class)
+    public ResponseEntity<Map<String, String>> handleTimeSlotNotFoundException(TimeSlotNotFoundException ex) {
+        Map<String, String> errors = new HashMap<>();
+        errors.put("error", ex.getMessage());
+        return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(UserAlreadyVoteException.class)
+    public ResponseEntity<Map<String, String>> handleUserAlreadyVoteException(UserAlreadyVoteException ex) {
+        Map<String, String> errors = new HashMap<>();
+        errors.put("error", ex.getMessage());
+        return new ResponseEntity<>(errors, HttpStatus.CONFLICT);
+    }
+
+    @ExceptionHandler(InvalidTimeException.class)
+    public ResponseEntity<Map<String, String>> handleInvalidTimeException(InvalidTimeException ex) {
+        Map<String, String> errors = new HashMap<>();
+        errors.put("error", ex.getMessage());
+        return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, String>> handleException(Exception ex) {
-        //TODO не выводи все подряд
+        //FIXME не выводи все подряд
         Map<String, String> errors = new HashMap<>();
         errors.put("error", ex.getMessage());
         return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);

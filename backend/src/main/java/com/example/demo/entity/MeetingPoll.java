@@ -1,24 +1,20 @@
 package com.example.demo.entity;
 
-import com.example.demo.dto.MeetingPollDTO;
+import java.time.ZonedDateTime;
+import java.util.List;
 
-import java.util.Date;
-
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
 @Entity
-@Table(name = "meeting_poll")
+@Builder
 @NoArgsConstructor
+@AllArgsConstructor
+@Table(name = "meeting_poll")
 public class MeetingPoll {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -33,36 +29,19 @@ public class MeetingPoll {
     private String description;
 
     @Column(nullable = false)
-    private Date createdAt;
+    private ZonedDateTime createdAt;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "creator_id")
     private User user;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "location_id")
     private Location location;
 
-    @Column(nullable = false)
-    private boolean isActive = true;
+    @OneToMany(mappedBy = "meetingPoll", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<MeetingPollTimeSlot> meetingPollTimeSlots;
 
-    public MeetingPoll(String title,
-                       int duration,
-                       String description,
-                       User user,
-                       Location location) {
-        this.title = title;
-        this.duration = duration;
-        this.description = description;
-        this.user = user;
-        this.location = location;
-        this.createdAt = new Date();
-    }
-
-    public MeetingPoll(MeetingPollDTO meetingPollDTO) {
-        this.title = meetingPollDTO.getTitle();
-        this.duration = meetingPollDTO.getDuration();
-        this.description = meetingPollDTO.getDescription();
-        this.createdAt = new Date();
-    }
+    @OneToMany(mappedBy = "meetingPoll", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<MeetingPollParticipant> meetingPollParticipants;
 }
