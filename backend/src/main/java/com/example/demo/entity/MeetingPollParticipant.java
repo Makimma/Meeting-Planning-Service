@@ -1,6 +1,9 @@
 package com.example.demo.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -19,10 +22,13 @@ public class MeetingPollParticipant {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @NotNull(message = "Meeting poll cannot be null")
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "poll_event_id", nullable = false)
     private MeetingPoll meetingPoll;
 
+    @NotBlank(message = "Participant email cannot be blank")
+    @Email(message = "Invalid email")
     @Column(nullable = false)
     private String participantName;
 

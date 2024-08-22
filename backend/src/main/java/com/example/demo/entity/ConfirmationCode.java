@@ -3,6 +3,8 @@ package com.example.demo.entity;
 import java.time.ZonedDateTime;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -18,16 +20,20 @@ public class ConfirmationCode {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @NotNull(message = "User cannot be null")
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
+    @NotBlank(message = "Code cannot be blank")
     @Column(nullable = false)
     private String code;
 
+    @NotNull(message = "Creation time cannot be null")
     @Column(nullable = false)
     private ZonedDateTime createdAt;
 
+    @NotNull(message = "Expiration time cannot be null")
     @Column(nullable = false)
     private ZonedDateTime expiresAt;
 

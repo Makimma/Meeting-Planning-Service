@@ -15,7 +15,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class MeetingPollRequest {
     @NotBlank(message = "Title is required")
-    @Size(max = 32, message = "Title must not exceed 255 characters")
+    @Size(max = 32, message = "Title must not exceed 32 characters")
     private String title;
 
     @NotNull(message = "Duration is required")

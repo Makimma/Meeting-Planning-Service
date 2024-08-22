@@ -29,6 +29,7 @@ public class LocationController {
         this.jdbcTemplate = jdbcTemplate;
     }
 
+    //TODO разкомментить
     @PostConstruct
     public void init() throws IOException {
         ClassPathResource resource = new ClassPathResource("DML/location.sql");
