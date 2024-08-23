@@ -1,15 +1,15 @@
-package com.example.demo.dto;
+package com.example.demo.response;
 
 import com.example.demo.entity.Location;
 
 import lombok.Data;
 
 @Data
-public class LocationDTO {
+public class LocationResponse {
     private Long id;
     private String name;
 
-    public LocationDTO(Location location) {
+    public LocationResponse(Location location) {
         this.id = location.getId();
         this.name = location.getName();
     }
