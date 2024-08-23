@@ -2,6 +2,7 @@ package com.example.demo.request;
 
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -24,9 +25,11 @@ public class MeetingPollRequest {
     @Size(max = 500, message = "Description must not exceed 500 characters")
     private String description;
 
+    @JsonProperty("location_id")
     @NotNull(message = "Location ID is required")
     private Long locationId;
 
+    @JsonProperty("time_slots")
     @NotNull(message = "Time slots are required")
     @Size(min = 1, message = "At least one time slot must be provided")
     private List<@Valid TimeSlotRequest> timeSlots;

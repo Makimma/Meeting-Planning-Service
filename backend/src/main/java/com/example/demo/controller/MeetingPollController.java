@@ -56,7 +56,9 @@ public class MeetingPollController {
     }
 
     @PostMapping("/{userLink}/{meetingPollId}/vote")
-    public ResponseEntity<Map<String, String>> vote(@PathVariable String userLink, @PathVariable Long meetingPollId, @Valid @RequestBody VoteRequest voteRequest) {
+    public ResponseEntity<Map<String, String>> vote(@PathVariable String userLink,
+                                                    @PathVariable Long meetingPollId,
+                                                    @Valid @RequestBody VoteRequest voteRequest) {
         meetingPollService.vote(userLink, meetingPollId, voteRequest);
 
         Map<String, String> response = new HashMap<>();

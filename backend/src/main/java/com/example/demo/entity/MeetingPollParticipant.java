@@ -33,7 +33,7 @@ public class MeetingPollParticipant {
 
     @NotBlank(message = "Participant email cannot be blank")
     @Email(message = "Invalid email")
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false)
     private String participantEmail;
 
     @ManyToMany
