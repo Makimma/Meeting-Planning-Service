@@ -18,6 +18,7 @@ public class LocationServiceImpl implements LocationService {
         this.locationRepository = locationRepository;
     }
 
+    //FIXME передалеть
     @Override
     public List<LocationDTO> getAllLocations() {
         return locationRepository.findAll().stream().map(LocationDTO::new).toList();

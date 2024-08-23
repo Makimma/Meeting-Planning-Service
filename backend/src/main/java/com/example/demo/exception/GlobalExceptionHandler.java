@@ -61,11 +61,10 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
     }
 
-    //TODO не факт что появится(удалить)
     @ExceptionHandler(MessagingException.class)
     public ResponseEntity<Map<String, String>> handleMessagingException(MessagingException ex) {
         Map<String, String> errors = new HashMap<>();
-        errors.put("error", "Failed to send email. Please try again later");
+        errors.put("error", "Error");
         return new ResponseEntity<>(errors, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 

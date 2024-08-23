@@ -1,6 +1,6 @@
 package com.example.demo.controller;
 
-import com.example.demo.dto.CreateMeetingFromPollDTO;
+import com.example.demo.response.MeetingResponse;
 import com.example.demo.response.VoteCountResponse;
 import com.example.demo.request.MeetingPollRequest;
 import com.example.demo.request.VoteRequest;
@@ -10,13 +10,7 @@ import com.example.demo.service.MeetingPollService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
 import java.util.List;
@@ -83,8 +77,10 @@ public class MeetingPollController {
     }
 
     //FIXME переделать
-    @PostMapping("/create-from-poll")
-    public ResponseEntity<?> createMeetingFromPoll(@RequestBody CreateMeetingFromPollDTO createMeetingFromPollDTO) {
-        return meetingPollService.createMeetingFromPoll(createMeetingFromPollDTO);
+    @PostMapping("/{meetingPollId}/create-meeting")
+    public ResponseEntity<MeetingResponse> createMeetingFromPoll(
+            @PathVariable Long meetingPollId,
+            @RequestParam Long timeSlotId) {
+        return ResponseEntity.ok(meetingPollService.createMeetingFromPoll(meetingPollId, timeSlotId));
     }
 }

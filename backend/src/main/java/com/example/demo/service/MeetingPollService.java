@@ -1,12 +1,11 @@
 package com.example.demo.service;
 
-import com.example.demo.dto.CreateMeetingFromPollDTO;
+import com.example.demo.response.MeetingResponse;
 import com.example.demo.response.VoteCountResponse;
 import com.example.demo.request.TimeSlotRequest;
 import com.example.demo.request.VoteRequest;
 
 import com.example.demo.response.MeetingPollResponse;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -27,8 +26,7 @@ public interface MeetingPollService {
 
     List<VoteCountResponse> getVoteCountsForMeetingPoll(Long meetingPollId);
 
-    //TODO отсюда
-    ResponseEntity<?> createMeetingFromPoll(CreateMeetingFromPollDTO createMeetingFromPollDTO);
+    MeetingResponse createMeetingFromPoll(Long meetingPollId, Long timeSlotId);
 
     //TODO изменить встречу
 }

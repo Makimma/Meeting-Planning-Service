@@ -27,11 +27,12 @@ public class MeetingPollParticipant {
     @JoinColumn(name = "poll_event_id", nullable = false)
     private MeetingPoll meetingPoll;
 
-    @NotBlank(message = "Participant email cannot be blank")
-    @Email(message = "Invalid email")
+    @NotBlank(message = "Participant name cannot be blank")
     @Column(nullable = false)
     private String participantName;
 
+    @NotBlank(message = "Participant email cannot be blank")
+    @Email(message = "Invalid email")
     @Column(nullable = false, unique = true)
     private String participantEmail;
 

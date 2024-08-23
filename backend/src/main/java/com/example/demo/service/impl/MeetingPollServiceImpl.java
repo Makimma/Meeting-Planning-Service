@@ -1,24 +1,16 @@
 package com.example.demo.service.impl;
 
-import com.example.demo.dto.CreateMeetingFromPollDTO;
 import com.example.demo.entity.*;
 import com.example.demo.exception.*;
-import com.example.demo.repository.MeetingPollParticipantRepository;
-import com.example.demo.repository.MeetingPollTimeSlotRepository;
-import com.example.demo.response.ParticipantResponse;
-import com.example.demo.response.VoteCountResponse;
+import com.example.demo.repository.*;
+import com.example.demo.response.*;
 import com.example.demo.request.TimeSlotRequest;
 import com.example.demo.request.VoteRequest;
-import com.example.demo.repository.LocationRepository;
-import com.example.demo.repository.MeetingPollRepository;
-import com.example.demo.response.MeetingPollResponse;
-import com.example.demo.response.TimeSlotResponse;
 import com.example.demo.service.MeetingPollService;
 import com.example.demo.service.UserService;
 import com.example.demo.util.AuthUtils;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
@@ -35,18 +27,21 @@ public class MeetingPollServiceImpl implements MeetingPollService {
     private final LocationRepository locationRepository;
     private final MeetingPollTimeSlotRepository meetingPollTimeSlotRepository;
     private final MeetingPollParticipantRepository meetingPollParticipantRepository;
+    private final MeetingRepository meetingRepository;
 
     @Autowired
     public MeetingPollServiceImpl(MeetingPollRepository meetingPollRepository,
                                   UserService userService,
                                   LocationRepository locationRepository,
                                   MeetingPollTimeSlotRepository meetingPollTimeSlotRepository,
-                                  MeetingPollParticipantRepository meetingPollParticipantRepository) {
+                                  MeetingPollParticipantRepository meetingPollParticipantRepository,
+                                  MeetingRepository meetingRepository) {
         this.meetingPollRepository = meetingPollRepository;
         this.userService = userService;
         this.locationRepository = locationRepository;
         this.meetingPollTimeSlotRepository = meetingPollTimeSlotRepository;
         this.meetingPollParticipantRepository = meetingPollParticipantRepository;
+        this.meetingRepository = meetingRepository;
     }
 
     @Override
@@ -196,13 +191,48 @@ public class MeetingPollServiceImpl implements MeetingPollService {
 
     @Override
     @Transactional
-    public ResponseEntity<?> createMeetingFromPoll(CreateMeetingFromPollDTO createMeetingFromPollDTO) {
-        //TODO
-//        if (scheduledPollEventService.schedulePollEvent(createMeetingFromPollDTO)) {
-//            return new ResponseEntity<>(HttpStatus.CREATED);
-//        }
-//        return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        return null;
+    public MeetingResponse createMeetingFromPoll(Long meetingPollId, Long timeSlotId) {
+        MeetingPoll meetingPoll = meetingPollRepository.findById(meetingPollId)
+                .orElseThrow(() -> new MeetingPollNotFoundException("MeetingPoll not found"));
+        if (!meetingPoll.getUser().getEmail().equals(AuthUtils.getCurrentUserEmail())) {
+            throw new UserNotFoundException("User not found");
+        }
+
+        MeetingPollTimeSlot meetingPollTimeSlot = meetingPollTimeSlotRepository.findById(timeSlotId)
+                .orElseThrow(() -> new TimeSlotNotFoundException("TimeSlot not found"));
+        if (!meetingPollTimeSlot.getMeetingPoll().getId().equals(meetingPoll.getId())) {
+            throw new TimeSlotNotFoundException("TimeSlot not found");
+        }
+
+        List<MeetingPollParticipant> meetingParticipants = meetingPoll.getMeetingPollParticipants().stream()
+                .map(participant -> {
+                    MeetingPollParticipant newParticipant = new MeetingPollParticipant();
+                    newParticipant.setParticipantName(participant.getParticipantName());
+                    newParticipant.setParticipantEmail(participant.getParticipantEmail());
+                    return newParticipant;
+                }).toList();
+
+        Meeting meeting = Meeting.builder()
+                .title(meetingPoll.getTitle())
+                .beginAt(meetingPollTimeSlot.getBeginAt())
+                .endAt(meetingPollTimeSlot.getEndAt())
+                .description(meetingPoll.getDescription())
+                .participants(meetingParticipants)
+                .build();
+        meeting = meetingRepository.save(meeting);
+
+        //TODO отправить участникам писмьмо о ивенте
+
+        return MeetingResponse.builder()
+                .id(meeting.getId())
+                .title(meeting.getTitle())
+                .description(meeting.getDescription())
+                .beginAt(meeting.getBeginAt())
+                .endAt(meeting.getEndAt())
+                .participantNames(meeting.getParticipants().stream()
+                        .map(participant -> new ParticipantResponse(participant.getParticipantName(), participant.getParticipantEmail()))
+                        .toList())
+                .build();
     }
 
     private MeetingPollResponse toMeetingPollResponse(MeetingPoll meetingPoll) {
