@@ -36,6 +36,8 @@ public class Meeting {
     @NotNull(message = "End time cannot be null")
     private ZonedDateTime endAt;
 
+    //TODO Добавить ссылку на ивент
+
     @OneToMany(fetch = FetchType.LAZY)
     @JoinColumn(name = "meeting_id")
     private List<MeetingPollParticipant> participants;

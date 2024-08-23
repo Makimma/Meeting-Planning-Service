@@ -221,7 +221,9 @@ public class MeetingPollServiceImpl implements MeetingPollService {
                 .build();
         meeting = meetingRepository.save(meeting);
 
-        //TODO отправить участникам писмьмо о ивенте
+        //TODO отправить участникам письмо о ивенте
+
+        //TODO добавить пользователю в календарь ивент
 
         return MeetingResponse.builder()
                 .id(meeting.getId())

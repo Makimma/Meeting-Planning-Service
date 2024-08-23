@@ -57,10 +57,14 @@ public class UserServiceImpl implements UserService {
         userRepository.deleteById(userId);
     }
 
-    //FIXME метод принимает id и по нему возвращается пользователя
-    //  FIXME Для возвращения своих данных использовать другой метод который мб будет использовать этот
     @Override
-    public UserInfoResponse getUserInfo() {
+    public UserInfoResponse getUserInfo(Long userId) {
+        return toUserInfoResponse(userRepository.findById(userId)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found")));
+    }
+
+    @Override
+    public UserInfoResponse getMyInfo() {
         return toUserInfoResponse(userRepository.findByEmail(AuthUtils.getCurrentUserEmail())
                 .orElseThrow(() -> new UsernameNotFoundException("User not found")));
     }

@@ -21,7 +21,9 @@ public interface UserService extends UserDetailsService {
 
     void deleteById(Long id);
 
-    UserInfoResponse getUserInfo();
+    UserInfoResponse getMyInfo();
+
+    UserInfoResponse getUserInfo(Long userId);
 
     UserInfoResponse updateUserInfo(UpdateUserRequest updateUserRequest);
 
