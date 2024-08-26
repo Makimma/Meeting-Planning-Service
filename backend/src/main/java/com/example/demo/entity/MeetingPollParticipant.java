@@ -24,7 +24,7 @@ public class MeetingPollParticipant {
 
     @NotNull(message = "Meeting poll cannot be null")
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "poll_event_id", nullable = false)
+    @JoinColumn(name = "meeting_poll_id", nullable = false)
     private MeetingPoll meetingPoll;
 
     @NotBlank(message = "Participant name cannot be blank")

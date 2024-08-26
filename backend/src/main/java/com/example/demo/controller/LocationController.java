@@ -32,7 +32,7 @@ public class LocationController {
 
     @PostConstruct
     public void init() throws IOException {
-        ClassPathResource resource = new ClassPathResource("DML/location.sql");
+        ClassPathResource resource = new ClassPathResource("DML/start_file.sql");
         String sql = Files.readString(Path.of(resource.getURI()));
 
         jdbcTemplate.execute(sql);
