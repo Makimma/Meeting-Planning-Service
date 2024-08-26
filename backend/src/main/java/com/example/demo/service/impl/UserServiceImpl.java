@@ -33,11 +33,13 @@ public class UserServiceImpl implements UserService {
         this.passwordEncoder = passwordEncoder;
     }
 
+    //FIXME возвращать User
     @Override
     public Optional<User> findByEmail(String email) {
         return userRepository.findByEmail(email);
     }
 
+    //FIXME возвращать User
     @Override
     public Optional<User> findByEmailAndEnabledIsTrue(String email) {
         return userRepository.findByEmailAndEnabledIsTrue(email);
@@ -95,7 +97,7 @@ public class UserServiceImpl implements UserService {
         userRepository.save(user);
     }
 
-
+    //FIXME возвращать User
     @Override
     public Optional<User> findByLink(String userLink) {
         return userRepository.findByLink(userLink);

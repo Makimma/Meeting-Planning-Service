@@ -225,6 +225,8 @@ public class MeetingPollServiceImpl implements MeetingPollService {
 
         //TODO добавить пользователю в календарь ивент
 
+        //TODO добавить логику в зависимости от location(зум, гугл мит и тд)
+
         return MeetingResponse.builder()
                 .id(meeting.getId())
                 .title(meeting.getTitle())

@@ -48,12 +48,13 @@ public class User implements UserDetails {
     @Column(nullable = false, unique = true)
     private String link;
 
+
+
     @Column(nullable = false)
     private boolean enabled = false;
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     private List<ConfirmationCode> confirmationCodes;
-
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

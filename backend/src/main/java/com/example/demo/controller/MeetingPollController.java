@@ -78,7 +78,6 @@ public class MeetingPollController {
         return ResponseEntity.ok(meetingPollService.getVoteCountsForMeetingPoll(meetingPollId));
     }
 
-    //FIXME переделать
     @PostMapping("/{meetingPollId}/create-meeting")
     public ResponseEntity<MeetingResponse> createMeetingFromPoll(
             @PathVariable Long meetingPollId,
