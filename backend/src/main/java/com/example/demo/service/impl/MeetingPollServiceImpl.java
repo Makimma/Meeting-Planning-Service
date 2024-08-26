@@ -238,7 +238,7 @@ public class MeetingPollServiceImpl implements MeetingPollService {
                 .description(meeting.getDescription())
                 .beginAt(meeting.getBeginAt())
                 .endAt(meeting.getEndAt())
-                .participantNames(meeting.getParticipants().stream()
+                .participants(meeting.getParticipants().stream()
                         .map(participant -> new ParticipantResponse(participant.getParticipantName(), participant.getParticipantEmail()))
                         .toList())
                 .build();

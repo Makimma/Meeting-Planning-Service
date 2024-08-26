@@ -22,6 +22,6 @@ public class MeetingResponse {
     @JsonProperty("end_at")
     private ZonedDateTime endAt;
 
-    @JsonProperty("participant_names")
-    private List<ParticipantResponse> participantNames;
+    @JsonProperty("participants")
+    private List<ParticipantResponse> participants;
 }
