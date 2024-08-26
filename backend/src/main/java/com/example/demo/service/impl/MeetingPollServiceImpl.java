@@ -70,7 +70,8 @@ public class MeetingPollServiceImpl implements MeetingPollService {
 
         List<MeetingPollTimeSlot> timeSlots = timeSlotRequests.stream().map(timeSlotRequest -> {
             if (timeSlotRequest.getBeginAt().isAfter(timeSlotRequest.getEndAt()) ||
-                    !Duration.between(timeSlotRequest.getBeginAt(), timeSlotRequest.getEndAt()).equals(Duration.ofMinutes(duration))) {
+                    !Duration.between(timeSlotRequest.getBeginAt(), timeSlotRequest.getEndAt()).equals(Duration.ofMinutes(duration)) ||
+            timeSlotRequest.getBeginAt().isBefore(ZonedDateTime.now())) {
                 throw new InvalidTimeException("Invalid time");
             }
             MeetingPollTimeSlot timeSlot = new MeetingPollTimeSlot();
