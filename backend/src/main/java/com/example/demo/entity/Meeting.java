@@ -39,6 +39,5 @@ public class Meeting {
     //TODO Добавить ссылку на ивент
 
     @OneToMany(fetch = FetchType.LAZY)
-    @JoinColumn(name = "meeting_id")
-    private List<MeetingPollParticipant> participants;
+    private List<MeetingParticipant> participants;
 }

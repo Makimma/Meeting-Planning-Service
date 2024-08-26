@@ -28,6 +28,7 @@ public class MeetingPollServiceImpl implements MeetingPollService {
     private final MeetingPollTimeSlotRepository meetingPollTimeSlotRepository;
     private final MeetingPollParticipantRepository meetingPollParticipantRepository;
     private final MeetingRepository meetingRepository;
+    private final MeetingParticipantRepository meetingParticipantRepository;
 
     @Autowired
     public MeetingPollServiceImpl(MeetingPollRepository meetingPollRepository,
@@ -35,13 +36,15 @@ public class MeetingPollServiceImpl implements MeetingPollService {
                                   LocationRepository locationRepository,
                                   MeetingPollTimeSlotRepository meetingPollTimeSlotRepository,
                                   MeetingPollParticipantRepository meetingPollParticipantRepository,
-                                  MeetingRepository meetingRepository) {
+                                  MeetingRepository meetingRepository,
+                                  MeetingParticipantRepository meetingParticipantRepository) {
         this.meetingPollRepository = meetingPollRepository;
         this.userService = userService;
         this.locationRepository = locationRepository;
         this.meetingPollTimeSlotRepository = meetingPollTimeSlotRepository;
         this.meetingPollParticipantRepository = meetingPollParticipantRepository;
         this.meetingRepository = meetingRepository;
+        this.meetingParticipantRepository = meetingParticipantRepository;
     }
 
     @Override
@@ -204,11 +207,12 @@ public class MeetingPollServiceImpl implements MeetingPollService {
             throw new TimeSlotNotFoundException("TimeSlot not found");
         }
 
-        List<MeetingPollParticipant> meetingParticipants = meetingPoll.getMeetingPollParticipants().stream()
+        List<MeetingParticipant> meetingParticipants = meetingPoll.getMeetingPollParticipants().stream()
                 .map(participant -> {
-                    MeetingPollParticipant newParticipant = new MeetingPollParticipant();
+                    MeetingParticipant newParticipant = new MeetingParticipant();
                     newParticipant.setParticipantName(participant.getParticipantName());
                     newParticipant.setParticipantEmail(participant.getParticipantEmail());
+                    newParticipant = meetingParticipantRepository.save(newParticipant);
                     return newParticipant;
                 }).toList();
 
@@ -219,6 +223,7 @@ public class MeetingPollServiceImpl implements MeetingPollService {
                 .description(meetingPoll.getDescription())
                 .participants(meetingParticipants)
                 .build();
+
         meeting = meetingRepository.save(meeting);
 
         //TODO отправить участникам письмо о ивенте
