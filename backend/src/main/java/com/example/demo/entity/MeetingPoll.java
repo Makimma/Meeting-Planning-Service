@@ -53,4 +53,6 @@ public class MeetingPoll {
 
     @OneToMany(mappedBy = "meetingPoll", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<MeetingPollParticipant> meetingPollParticipants;
+
+    private boolean active = true;
 }

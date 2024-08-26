@@ -145,7 +145,8 @@ public class MeetingPollServiceImpl implements MeetingPollService {
             throw new UserAlreadyVoteException("User has already voted in this poll");
         }
 
-        List<MeetingPollTimeSlot> selectedSlots = meetingPollTimeSlotRepository.findAllById(voteRequest.getSelectedTimeSlotIds());
+        List<MeetingPollTimeSlot> selectedSlots = meetingPollTimeSlotRepository
+                .findByIdInAndMeetingPollId(voteRequest.getSelectedTimeSlotIds(), meetingPollId);
         if (selectedSlots.size() != voteRequest.getSelectedTimeSlotIds().size()) {
             throw new TimeSlotNotFoundException("Time slot not found");
         }
@@ -197,8 +198,13 @@ public class MeetingPollServiceImpl implements MeetingPollService {
     public MeetingResponse createMeetingFromPoll(Long meetingPollId, Long timeSlotId) {
         MeetingPoll meetingPoll = meetingPollRepository.findById(meetingPollId)
                 .orElseThrow(() -> new MeetingPollNotFoundException("MeetingPoll not found"));
+
         if (!meetingPoll.getUser().getEmail().equals(AuthUtils.getCurrentUserEmail())) {
             throw new UserNotFoundException("User not found");
+        }
+
+        if (!meetingPoll.isActive()) {
+            throw new MeetingAlreadyExistException("Meeting already created");
         }
 
         MeetingPollTimeSlot meetingPollTimeSlot = meetingPollTimeSlotRepository.findById(timeSlotId)
@@ -231,6 +237,9 @@ public class MeetingPollServiceImpl implements MeetingPollService {
         //TODO добавить пользователю в календарь ивент
 
         //TODO добавить логику в зависимости от location(зум, гугл мит и тд)
+
+        meetingPoll.setActive(false);
+        meetingPollRepository.save(meetingPoll);
 
         return MeetingResponse.builder()
                 .id(meeting.getId())
