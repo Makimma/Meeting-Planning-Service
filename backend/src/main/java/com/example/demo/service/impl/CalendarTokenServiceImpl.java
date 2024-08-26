@@ -66,9 +66,13 @@ public class CalendarTokenServiceImpl implements CalendarTokenService {
     }
 
     @Override
-    public boolean isUserConnectedToCalendar() {
+    public boolean isUserConnectedToGoogleCalendar() {
         User currentUser = userService.findByEmail(AuthUtils.getCurrentUserEmail())
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
-        return calendarTokenRepository.existsByUser(currentUser);
+
+        Calendar calendar = calendarRepository.findByName("Google")
+                .orElseThrow(() -> new CalendarNotFoundException("Calendar not found"));
+
+        return connectedCalendarRepository.existsByUserAndCalendar(currentUser, calendar);
     }
 }

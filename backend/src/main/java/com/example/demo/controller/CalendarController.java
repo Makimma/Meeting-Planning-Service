@@ -19,6 +19,6 @@ public class CalendarController {
 
     @GetMapping("/google-calendar/is-connected")
     public ResponseEntity<Boolean> isUserConnectedToCalendar() {
-        return ResponseEntity.ok(calendarTokenService.isUserConnectedToCalendar());
+        return ResponseEntity.ok(calendarTokenService.isUserConnectedToGoogleCalendar());
     }
 }
