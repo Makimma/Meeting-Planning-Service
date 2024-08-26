@@ -15,9 +15,9 @@ import java.util.List;
 @Data
 @Entity
 @Builder
-@Table(name = "meeting")
 @NoArgsConstructor
 @AllArgsConstructor
+@Table(name = "meeting")
 public class Meeting {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -38,6 +38,6 @@ public class Meeting {
 
     //TODO Добавить ссылку на ивент
 
-    @OneToMany(fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "meeting", fetch = FetchType.LAZY)
     private List<MeetingParticipant> participants;
 }

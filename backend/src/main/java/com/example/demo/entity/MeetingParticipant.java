@@ -7,10 +7,15 @@ import lombok.Data;
 
 @Data
 @Entity
+@Table(name = "meeting_participant")
 public class MeetingParticipant {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "meeting_id", nullable = false)
+    private Meeting meeting;
 
     @NotBlank(message = "Participant name cannot be blank")
     @Column(nullable = false)

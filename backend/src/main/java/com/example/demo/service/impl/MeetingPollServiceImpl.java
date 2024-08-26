@@ -219,7 +219,6 @@ public class MeetingPollServiceImpl implements MeetingPollService {
                     MeetingParticipant newParticipant = new MeetingParticipant();
                     newParticipant.setParticipantName(participant.getParticipantName());
                     newParticipant.setParticipantEmail(participant.getParticipantEmail());
-                    newParticipant = meetingParticipantRepository.save(newParticipant);
                     return newParticipant;
                 }).toList();
 
@@ -232,6 +231,9 @@ public class MeetingPollServiceImpl implements MeetingPollService {
                 .build();
 
         meeting = meetingRepository.save(meeting);
+        Meeting finalMeeting = meeting;
+        meetingParticipants.forEach(participant -> {participant.setMeeting(finalMeeting);});
+        meetingParticipantRepository.saveAll(meetingParticipants);
 
         //TODO отправить участникам письмо о ивенте
 
