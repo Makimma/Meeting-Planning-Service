@@ -42,7 +42,7 @@ public class AuthController {
         String accessToken = authService.authenticateUser(authRequest.getEmail(), authRequest.getPassword());
         String refreshToken = authService.generateRefreshToken(authRequest.getEmail());
 
-        ResponseCookie accessTokenCookie = ResponseCookie.from("accessToken", accessToken)
+        ResponseCookie accessTokenCookie = ResponseCookie.from("access_token", accessToken)
                 .httpOnly(true)
                 .secure(true)
                 .path("/")
@@ -50,7 +50,7 @@ public class AuthController {
                 .sameSite("Strict")
                 .build();
 
-        ResponseCookie refreshTokenCookie = ResponseCookie.from("refreshToken", refreshToken)
+        ResponseCookie refreshTokenCookie = ResponseCookie.from("refresh_token", refreshToken)
                 .httpOnly(true)
                 .secure(true)
                 .path("/")
@@ -68,7 +68,7 @@ public class AuthController {
     public ResponseEntity<ApiResponse> refreshToken(HttpServletRequest request, HttpServletResponse response) {
         String newAccessToken = authService.refreshAccessToken(request, response);
 
-        ResponseCookie accessTokenCookie = ResponseCookie.from("accessToken", newAccessToken)
+        ResponseCookie accessTokenCookie = ResponseCookie.from("access_token", newAccessToken)
                 .httpOnly(true)
                 .secure(true)
                 .path("/")
@@ -85,7 +85,7 @@ public class AuthController {
     public ResponseEntity<?> logout(HttpServletRequest request, HttpServletResponse response) {
         authService.logout(request, response);
 
-        ResponseCookie deleteAccessTokenCookie = ResponseCookie.from("accessToken", "")
+        ResponseCookie deleteAccessTokenCookie = ResponseCookie.from("access_token", "")
                 .httpOnly(true)
                 .secure(true)
                 .path("/")
@@ -93,7 +93,7 @@ public class AuthController {
                 .sameSite("Strict")
                 .build();
 
-        ResponseCookie deleteRefreshTokenCookie = ResponseCookie.from("refreshToken", "")
+        ResponseCookie deleteRefreshTokenCookie = ResponseCookie.from("refresh_token", "")
                 .httpOnly(true)
                 .secure(true)
                 .path("/")

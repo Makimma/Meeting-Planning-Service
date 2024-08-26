@@ -84,7 +84,7 @@ public class AuthServiceImpl implements AuthService {
         Cookie[] cookies = request.getCookies();
         if (cookies != null) {
             for (Cookie cookie : cookies) {
-                if (cookie.getName().equals("refreshToken")) {
+                if (cookie.getName().equals("refresh_token")) {
                     String refreshTokenValue = cookie.getValue();
 
                     RefreshToken refreshToken = refreshTokenRepository.findByToken(refreshTokenValue)

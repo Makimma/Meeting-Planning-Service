@@ -65,7 +65,7 @@ public class RegistrationController {
         String refreshToken = authService.generateRefreshToken(confirmationUserRequest.email);
         String accessToken = authService.generateAccessToken(confirmationUserRequest.email);
 
-        ResponseCookie accessTokenCookie = ResponseCookie.from("accessToken", accessToken)
+        ResponseCookie accessTokenCookie = ResponseCookie.from("access_token", accessToken)
                 .httpOnly(true)
                 .secure(true)
                 .path("/")
@@ -73,7 +73,7 @@ public class RegistrationController {
                 .sameSite("Strict")
                 .build();
 
-        ResponseCookie refreshTokenCookie = ResponseCookie.from("refreshToken", refreshToken)
+        ResponseCookie refreshTokenCookie = ResponseCookie.from("refresh_token", refreshToken)
                 .httpOnly(true)
                 .secure(true)
                 .path("/")
