@@ -214,26 +214,25 @@ public class MeetingPollServiceImpl implements MeetingPollService {
             throw new TimeSlotNotFoundException("TimeSlot not found");
         }
 
-        List<MeetingParticipant> meetingParticipants = meetingPoll.getMeetingPollParticipants().stream()
-                .map(participant -> {
-                    MeetingParticipant newParticipant = new MeetingParticipant();
-                    newParticipant.setParticipantName(participant.getParticipantName());
-                    newParticipant.setParticipantEmail(participant.getParticipantEmail());
-                    return newParticipant;
-                }).toList();
-
         Meeting meeting = Meeting.builder()
                 .title(meetingPoll.getTitle())
                 .beginAt(meetingPollTimeSlot.getBeginAt())
                 .endAt(meetingPollTimeSlot.getEndAt())
                 .description(meetingPoll.getDescription())
-                .participants(meetingParticipants)
                 .build();
-
         meeting = meetingRepository.save(meeting);
+
         Meeting finalMeeting = meeting;
-        meetingParticipants.forEach(participant -> {participant.setMeeting(finalMeeting);});
-        meetingParticipantRepository.saveAll(meetingParticipants);
+        List<MeetingParticipant> meetingParticipants = meetingPoll.getMeetingPollParticipants().stream()
+                .map(participant -> {
+                    MeetingParticipant newParticipant = new MeetingParticipant();
+                    newParticipant.setParticipantName(participant.getParticipantName());
+                    newParticipant.setParticipantEmail(participant.getParticipantEmail());
+                    newParticipant.setMeeting(finalMeeting);
+                    return meetingParticipantRepository.save(newParticipant);
+                }).toList();
+
+        meeting.setParticipants(meetingParticipants);
 
         //TODO отправить участникам письмо о ивенте
 
