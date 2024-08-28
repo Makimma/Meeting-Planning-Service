@@ -23,6 +23,10 @@ public class Meeting {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
+
     @NotBlank(message = "Title cannot be blank")
     @Size(max = 32, message = "Title must not exceed 32 characters")
     private String title;
@@ -36,8 +40,18 @@ public class Meeting {
     @NotNull(message = "End time cannot be null")
     private ZonedDateTime endAt;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "location_id", nullable = false)
+    private Location location;
+
     //TODO Добавить ссылку на ивент
 
-    @OneToMany(mappedBy = "meeting", fetch = FetchType.LAZY)
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "calendar_id")
+    private Calendar calendar;
+
+    private String eventId;
+
+    @OneToMany(mappedBy = "meeting", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     private List<MeetingParticipant> participants;
 }

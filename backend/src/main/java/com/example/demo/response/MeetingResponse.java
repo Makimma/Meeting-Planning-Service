@@ -11,10 +11,11 @@ import java.util.List;
 @Builder
 public class MeetingResponse {
     private Long id;
-
     private String title;
-
     private String description;
+
+    @JsonProperty("location_id")
+    private Long locationId;
 
     @JsonProperty("begin_at")
     private ZonedDateTime beginAt;

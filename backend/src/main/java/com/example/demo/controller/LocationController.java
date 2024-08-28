@@ -30,13 +30,13 @@ public class LocationController {
         this.jdbcTemplate = jdbcTemplate;
     }
 
-    @PostConstruct
-    public void init() throws IOException {
-        ClassPathResource resource = new ClassPathResource("DML/start_file.sql");
-        String sql = Files.readString(Path.of(resource.getURI()));
-
-        jdbcTemplate.execute(sql);
-    }
+//    @PostConstruct
+//    public void init() throws IOException {
+//        ClassPathResource resource = new ClassPathResource("DML/start_file.sql");
+//        String sql = Files.readString(Path.of(resource.getURI()));
+//
+//        jdbcTemplate.execute(sql);
+//    }
 
     @GetMapping
     public ResponseEntity<List<LocationResponse>> getAllLocations() {

@@ -7,7 +7,7 @@ token:
 google:
   client-id: 1090063756103-8dj5r62km0qkt0visrqrvp4pf6ks9d9f.apps.googleusercontent.com
   client-secret: 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
-  redirect-uri: http://localhost:8080/oauth2/callback
+  redirect-uri: http://localhost:8080/api/v1/oauth2/google-calendar/callback
 spring:
   mail:
     host: smtp.yandex.ru

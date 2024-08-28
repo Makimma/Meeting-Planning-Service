@@ -116,7 +116,7 @@ public class OAuthServiceImpl implements OAuthService {
 
                 calendarToken.setAccessToken(newAccessToken);
                 calendarToken.setExpiresAt(expiresAt);
-                calendarTokenRepository.save(calendarToken);
+                calendarTokenRepository.saveAndFlush(calendarToken);
 
             } catch (ParseException e) {
                 throw new CalendarParseCodeException("Error during token exchange");

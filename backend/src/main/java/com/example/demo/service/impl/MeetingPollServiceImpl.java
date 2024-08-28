@@ -3,9 +3,11 @@ package com.example.demo.service.impl;
 import com.example.demo.entity.*;
 import com.example.demo.exception.*;
 import com.example.demo.repository.*;
+import com.example.demo.request.CalendarEventRequest;
 import com.example.demo.response.*;
 import com.example.demo.request.TimeSlotRequest;
 import com.example.demo.request.VoteRequest;
+import com.example.demo.service.GoogleCalendarService;
 import com.example.demo.service.MeetingPollService;
 import com.example.demo.service.UserService;
 import com.example.demo.util.AuthUtils;
@@ -29,6 +31,9 @@ public class MeetingPollServiceImpl implements MeetingPollService {
     private final MeetingPollParticipantRepository meetingPollParticipantRepository;
     private final MeetingRepository meetingRepository;
     private final MeetingParticipantRepository meetingParticipantRepository;
+    private final GoogleCalendarService googleCalendarService;
+    private final ConnectedCalendarRepository connectedCalendarRepository;
+    private final CalendarRepository calendarRepository;
 
     @Autowired
     public MeetingPollServiceImpl(MeetingPollRepository meetingPollRepository,
@@ -37,7 +42,10 @@ public class MeetingPollServiceImpl implements MeetingPollService {
                                   MeetingPollTimeSlotRepository meetingPollTimeSlotRepository,
                                   MeetingPollParticipantRepository meetingPollParticipantRepository,
                                   MeetingRepository meetingRepository,
-                                  MeetingParticipantRepository meetingParticipantRepository) {
+                                  MeetingParticipantRepository meetingParticipantRepository,
+                                  GoogleCalendarService googleCalendarService,
+                                  ConnectedCalendarRepository connectedCalendarRepository,
+                                  CalendarRepository calendarRepository) {
         this.meetingPollRepository = meetingPollRepository;
         this.userService = userService;
         this.locationRepository = locationRepository;
@@ -45,6 +53,9 @@ public class MeetingPollServiceImpl implements MeetingPollService {
         this.meetingPollParticipantRepository = meetingPollParticipantRepository;
         this.meetingRepository = meetingRepository;
         this.meetingParticipantRepository = meetingParticipantRepository;
+        this.googleCalendarService = googleCalendarService;
+        this.connectedCalendarRepository = connectedCalendarRepository;
+        this.calendarRepository = calendarRepository;
     }
 
     @Override
@@ -71,7 +82,7 @@ public class MeetingPollServiceImpl implements MeetingPollService {
         List<MeetingPollTimeSlot> timeSlots = timeSlotRequests.stream().map(timeSlotRequest -> {
             if (timeSlotRequest.getBeginAt().isAfter(timeSlotRequest.getEndAt()) ||
                     !Duration.between(timeSlotRequest.getBeginAt(), timeSlotRequest.getEndAt()).equals(Duration.ofMinutes(duration)) ||
-            timeSlotRequest.getBeginAt().isBefore(ZonedDateTime.now())) {
+                    timeSlotRequest.getBeginAt().isBefore(ZonedDateTime.now())) {
                 throw new InvalidTimeException("Invalid time");
             }
             MeetingPollTimeSlot timeSlot = new MeetingPollTimeSlot();
@@ -215,10 +226,12 @@ public class MeetingPollServiceImpl implements MeetingPollService {
         }
 
         Meeting meeting = Meeting.builder()
+                .user(meetingPoll.getUser())
                 .title(meetingPoll.getTitle())
+                .description(meetingPoll.getDescription())
                 .beginAt(meetingPollTimeSlot.getBeginAt())
                 .endAt(meetingPollTimeSlot.getEndAt())
-                .description(meetingPoll.getDescription())
+                .location(meetingPoll.getLocation())
                 .build();
         meeting = meetingRepository.save(meeting);
 
@@ -234,11 +247,15 @@ public class MeetingPollServiceImpl implements MeetingPollService {
 
         meeting.setParticipants(meetingParticipants);
 
-        //TODO отправить участникам письмо о ивенте
+        //TODO добавить логику создания ссылки на встречу в зависимости от location(гугл мит и тд)
 
-        //TODO добавить пользователю в календарь ивент
-
-        //TODO добавить логику в зависимости от location(зум, гугл мит и тд)
+        //Добавление встречи в календарь пользователя
+        Calendar calendar = calendarRepository.findByName("Google")
+                .orElseThrow(() -> new CalendarNotFoundException("Calendar not found"));
+        if (connectedCalendarRepository.existsByUserAndCalendar(meeting.getUser(), calendar)) {
+            meeting.setEventId(googleCalendarService.createCalendarEvent(meeting.getUser(), meeting));
+            meeting.setCalendar(calendar);
+        }
 
         meetingPoll.setActive(false);
         meetingPollRepository.save(meetingPoll);
@@ -247,12 +264,25 @@ public class MeetingPollServiceImpl implements MeetingPollService {
                 .id(meeting.getId())
                 .title(meeting.getTitle())
                 .description(meeting.getDescription())
+                .locationId(meeting.getLocation().getId())
                 .beginAt(meeting.getBeginAt())
                 .endAt(meeting.getEndAt())
                 .participants(meeting.getParticipants().stream()
                         .map(participant -> new ParticipantResponse(participant.getParticipantName(), participant.getParticipantEmail()))
                         .toList())
                 .build();
+    }
+
+    private CalendarEventRequest getCalendarEventRequest(Meeting meeting) {
+        CalendarEventRequest eventRequest = new CalendarEventRequest();
+        eventRequest.setTitle(meeting.getTitle());
+        eventRequest.setDescription(meeting.getDescription());
+        eventRequest.setStartTime(meeting.getBeginAt());
+        eventRequest.setEndTime(meeting.getEndAt());
+        eventRequest.setLocation(meeting.getLocation().getName());
+        eventRequest.setParticipants(meeting.getParticipants());
+//        TODO eventRequest.setLink();
+        return eventRequest;
     }
 
     private MeetingPollResponse toMeetingPollResponse(MeetingPoll meetingPoll) {
