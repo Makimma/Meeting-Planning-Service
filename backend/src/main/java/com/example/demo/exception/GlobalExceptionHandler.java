@@ -138,6 +138,13 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errors, HttpStatus.CONFLICT);
     }
 
+    @ExceptionHandler(CalendarAlreadyConnectedException.class)
+    public ResponseEntity<Map<String, String>> handleCalendarAlreadyConnectedException(CalendarAlreadyConnectedException ex) {
+        Map<String, String> errors = new HashMap<>();
+        errors.put("error", ex.getMessage());
+        return new ResponseEntity<>(errors, HttpStatus.CONFLICT);
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, String>> handleException(Exception ex) {
         //FIXME не выводи все подряд

@@ -29,7 +29,7 @@ public class OAuthCallbackController {
     @PostMapping("/google-calendar/callback")
     public ResponseEntity<Map<String, String>> oauthCallback(@RequestParam("code") String code) {
         JsonNode tokenData = oAuthService.exchangeCodeForTokens(code);
-        calendarTokenService.saveTokens(tokenData, "google");
+        calendarTokenService.saveTokens(tokenData, "Google");
 
         Map<String, String> response = new HashMap<>();
         response.put("message", "Tokens saved successfully");

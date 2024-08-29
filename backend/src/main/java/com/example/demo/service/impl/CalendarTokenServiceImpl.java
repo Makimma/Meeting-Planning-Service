@@ -4,6 +4,7 @@ import com.example.demo.entity.Calendar;
 import com.example.demo.entity.CalendarToken;
 import com.example.demo.entity.ConnectedCalendar;
 import com.example.demo.entity.User;
+import com.example.demo.exception.CalendarAlreadyConnectedException;
 import com.example.demo.exception.CalendarNotFoundException;
 import com.example.demo.repository.CalendarRepository;
 import com.example.demo.repository.CalendarTokenRepository;
@@ -41,7 +42,13 @@ public class CalendarTokenServiceImpl implements CalendarTokenService {
     @Transactional
     public void saveTokens(JsonNode tokenData, String provider) {
         String accessToken = tokenData.get("access_token").asText();
-        String refreshToken = tokenData.get("refresh_token").asText();
+        String refreshToken;
+        if (tokenData.has("refresh_token")) {
+            refreshToken = tokenData.get("refresh_token").asText();
+        } else {
+            refreshToken = "";
+        }
+
         long expiresIn = tokenData.get("expires_in").asLong();
         ZonedDateTime expiresAt = ZonedDateTime.now().plusSeconds(expiresIn);
 
@@ -52,10 +59,16 @@ public class CalendarTokenServiceImpl implements CalendarTokenService {
                 .orElseThrow(() -> new CalendarNotFoundException("Calendar not found"));
 
         CalendarToken calendarToken = new CalendarToken();
+        if (refreshToken.isEmpty()) {
+            calendarToken = calendarTokenRepository.findByUser(currentUser)
+                    .orElseThrow(() -> new CalendarNotFoundException("Calendar not found"));
+        }
         calendarToken.setUser(currentUser);
         calendarToken.setCalendar(calendar);
         calendarToken.setAccessToken(accessToken);
-        calendarToken.setRefreshToken(refreshToken);
+        if (!refreshToken.isEmpty()) {
+            calendarToken.setRefreshToken(refreshToken);
+        }
         calendarToken.setExpiresAt(expiresAt);
         calendarTokenRepository.save(calendarToken);
 

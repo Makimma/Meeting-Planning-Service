@@ -1,9 +1,15 @@
 package com.example.demo.service.impl;
 
+import com.example.demo.entity.Calendar;
 import com.example.demo.entity.CalendarToken;
+import com.example.demo.entity.ConnectedCalendar;
+import com.example.demo.entity.User;
+import com.example.demo.exception.CalendarAlreadyConnectedException;
 import com.example.demo.exception.CalendarNotFoundException;
 import com.example.demo.exception.CalendarParseCodeException;
+import com.example.demo.repository.CalendarRepository;
 import com.example.demo.repository.CalendarTokenRepository;
+import com.example.demo.repository.ConnectedCalendarRepository;
 import com.example.demo.service.OAuthService;
 import com.example.demo.service.UserService;
 import com.example.demo.util.AuthUtils;
@@ -31,6 +37,8 @@ import java.util.List;
 
 @Service
 public class OAuthServiceImpl implements OAuthService {
+    private final ConnectedCalendarRepository connectedCalendarRepository;
+    private final CalendarRepository calendarRepository;
     @Value("${google.client-id}")
     private String clientId;
 
@@ -45,13 +53,26 @@ public class OAuthServiceImpl implements OAuthService {
 
     @Autowired
     public OAuthServiceImpl(CalendarTokenRepository calendarTokenRepository,
-                            UserService userService) {
+                            UserService userService,
+                            ConnectedCalendarRepository connectedCalendarRepository,
+                            CalendarRepository calendarRepository) {
         this.calendarTokenRepository = calendarTokenRepository;
         this.userService = userService;
+        this.connectedCalendarRepository = connectedCalendarRepository;
+        this.calendarRepository = calendarRepository;
     }
 
     @Override
     public JsonNode exchangeCodeForTokens(String code) {
+        User currentUser = userService.findByEmail(AuthUtils.getCurrentUserEmail())
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
+        Calendar calendar = calendarRepository.findByName("Google")
+                .orElseThrow(() -> new CalendarNotFoundException("Calendar not found"));
+        if (connectedCalendarRepository.existsByUserAndCalendar(currentUser, calendar)) {
+            throw new CalendarAlreadyConnectedException("Calendar already connected");
+        }
+
         try (CloseableHttpClient client = HttpClients.createDefault()) {
             HttpPost post = new HttpPost("https://oauth2.googleapis.com/token");
             List<NameValuePair> params = new ArrayList<>();
@@ -71,11 +92,8 @@ public class OAuthServiceImpl implements OAuthService {
                 if (jsonNode.has("error")) {
                     String error = jsonNode.get("error").asText();
                     String errorDescription = jsonNode.has("error_description") ? jsonNode.get("error_description").asText() : "No description provided";
+                    //TODO
                     throw new RuntimeException("Error fetching tokens: " + error + " - " + errorDescription);
-                }
-
-                if (!jsonNode.has("access_token") || !jsonNode.has("refresh_token")) {
-                    throw new RuntimeException("Missing expected tokens in the response");
                 }
 
                 return jsonNode;

@@ -17,7 +17,7 @@ public class CalendarToken {
     private Long id;
 
     @NotNull(message = "User is required")
-    @ManyToOne
+    @OneToOne
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
