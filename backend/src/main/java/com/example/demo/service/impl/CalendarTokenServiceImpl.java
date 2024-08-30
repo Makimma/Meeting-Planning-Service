@@ -4,7 +4,6 @@ import com.example.demo.entity.Calendar;
 import com.example.demo.entity.CalendarToken;
 import com.example.demo.entity.ConnectedCalendar;
 import com.example.demo.entity.User;
-import com.example.demo.exception.CalendarAlreadyConnectedException;
 import com.example.demo.exception.CalendarNotFoundException;
 import com.example.demo.repository.CalendarRepository;
 import com.example.demo.repository.CalendarTokenRepository;
@@ -87,5 +86,17 @@ public class CalendarTokenServiceImpl implements CalendarTokenService {
                 .orElseThrow(() -> new CalendarNotFoundException("Calendar not found"));
 
         return connectedCalendarRepository.existsByUserAndCalendar(currentUser, calendar);
+    }
+
+    @Override
+    @Transactional
+    public void disconnectFromGoogleCalendar() {
+        User user = userService.findByEmail(AuthUtils.getCurrentUserEmail())
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
+        Calendar calendar = calendarRepository.findByName("Google")
+                .orElseThrow(() -> new CalendarNotFoundException("Calendar not found"));
+
+        connectedCalendarRepository.deleteByUserAndCalendar(user, calendar);
     }
 }

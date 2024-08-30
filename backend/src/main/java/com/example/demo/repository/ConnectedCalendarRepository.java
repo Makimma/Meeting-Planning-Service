@@ -7,4 +7,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface ConnectedCalendarRepository extends JpaRepository<ConnectedCalendar, Long> {
     boolean existsByUserAndCalendar(User user, Calendar calendar);
+    void deleteByUserAndCalendar(User user, Calendar calendar);
 }

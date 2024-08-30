@@ -3,7 +3,6 @@ package com.example.demo.service.impl;
 import com.example.demo.entity.*;
 import com.example.demo.exception.*;
 import com.example.demo.repository.*;
-import com.example.demo.request.CalendarEventRequest;
 import com.example.demo.response.*;
 import com.example.demo.request.TimeSlotRequest;
 import com.example.demo.request.VoteRequest;
@@ -253,8 +252,11 @@ public class MeetingPollServiceImpl implements MeetingPollService {
         Calendar calendar = calendarRepository.findByName("Google")
                 .orElseThrow(() -> new CalendarNotFoundException("Calendar not found"));
         if (connectedCalendarRepository.existsByUserAndCalendar(meeting.getUser(), calendar)) {
-            meeting.setEventId(googleCalendarService.createCalendarEvent(meeting.getUser(), meeting));
-            meeting.setCalendar(calendar);
+            String eventId = googleCalendarService.createCalendarEvent(meeting.getUser(), meeting);
+            if (eventId != null) {
+                meeting.setEventId(eventId);
+                meeting.setCalendar(calendar);
+            }
         }
 
         meetingPoll.setActive(false);
@@ -271,18 +273,6 @@ public class MeetingPollServiceImpl implements MeetingPollService {
                         .map(participant -> new ParticipantResponse(participant.getParticipantName(), participant.getParticipantEmail()))
                         .toList())
                 .build();
-    }
-
-    private CalendarEventRequest getCalendarEventRequest(Meeting meeting) {
-        CalendarEventRequest eventRequest = new CalendarEventRequest();
-        eventRequest.setTitle(meeting.getTitle());
-        eventRequest.setDescription(meeting.getDescription());
-        eventRequest.setStartTime(meeting.getBeginAt());
-        eventRequest.setEndTime(meeting.getEndAt());
-        eventRequest.setLocation(meeting.getLocation().getName());
-        eventRequest.setParticipants(meeting.getParticipants());
-//        TODO eventRequest.setLink();
-        return eventRequest;
     }
 
     private MeetingPollResponse toMeetingPollResponse(MeetingPoll meetingPoll) {

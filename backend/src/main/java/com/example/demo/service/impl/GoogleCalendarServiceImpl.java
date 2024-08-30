@@ -7,6 +7,7 @@ import com.example.demo.entity.User;
 import com.example.demo.exception.CalendarNotFoundException;
 import com.example.demo.repository.CalendarRepository;
 import com.example.demo.repository.CalendarTokenRepository;
+import com.example.demo.repository.ConnectedCalendarRepository;
 import com.example.demo.repository.MeetingRepository;
 import com.example.demo.service.GoogleCalendarService;
 import com.example.demo.service.OAuthService;
@@ -34,21 +35,27 @@ public class GoogleCalendarServiceImpl implements GoogleCalendarService {
     private final CalendarTokenRepository calendarTokenRepository;
     private final CalendarRepository calendarRepository;
     private final MeetingRepository meetingRepository;
+    private final ConnectedCalendarRepository connectedCalendarRepository;
 
     @Autowired
     public GoogleCalendarServiceImpl(OAuthService oAuthService,
                                      CalendarTokenRepository calendarTokenRepository,
-                                     CalendarRepository calendarRepository, MeetingRepository meetingRepository) {
+                                     CalendarRepository calendarRepository, MeetingRepository meetingRepository, ConnectedCalendarRepository connectedCalendarRepository) {
         this.oAuthService = oAuthService;
         this.calendarTokenRepository = calendarTokenRepository;
         this.calendarRepository = calendarRepository;
         this.meetingRepository = meetingRepository;
+        this.connectedCalendarRepository = connectedCalendarRepository;
     }
 
     @Override
     public String createCalendarEvent(User user, Meeting meeting) {
-        CalendarToken calendarToken = calendarTokenRepository.findByUser(user)
-                .orElseThrow(() -> new CalendarNotFoundException("No CalendarToken found for user"));
+        CalendarToken calendarToken = calendarTokenRepository.findByUserAndCalendar(user, meeting.getCalendar())
+                .orElse(null);
+
+        if (calendarToken == null || !connectedCalendarRepository.existsByUserAndCalendar(user, meeting.getCalendar())) {
+            return null;
+        }
 
         if (calendarToken.getExpiresAt().isBefore(ZonedDateTime.now())) {
             oAuthService.refreshAccessToken();
@@ -88,15 +95,13 @@ public class GoogleCalendarServiceImpl implements GoogleCalendarService {
              CloseableHttpResponse response = client.execute(post)) {
 
             if (response.getCode() != 200) {
+                //TODO вернуть Null?
                 throw new RuntimeException("Failed to create calendar event");
             }
 
             String responseBody = EntityUtils.toString(response.getEntity());
             JsonNode jsonNode = mapper.readTree(responseBody);
 
-//            meeting.setEventId(jsonNode.get("id").asText());
-//            meeting.setCalendar(calendarRepository.findByName("Google").orElse(null));
-//            meetingRepository.save(meeting);
             return jsonNode.get("id").asText();
         } catch (IOException | ParseException ignored) {
             return null;
