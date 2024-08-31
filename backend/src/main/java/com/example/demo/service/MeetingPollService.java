@@ -28,5 +28,5 @@ public interface MeetingPollService {
 
     MeetingResponse createMeetingFromPoll(Long meetingPollId, Long timeSlotId);
 
-    //TODO изменить встречу
+    //TODO изменить опрос
 }

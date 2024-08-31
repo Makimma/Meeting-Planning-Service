@@ -92,8 +92,7 @@ public class OAuthServiceImpl implements OAuthService {
                 if (jsonNode.has("error")) {
                     String error = jsonNode.get("error").asText();
                     String errorDescription = jsonNode.has("error_description") ? jsonNode.get("error_description").asText() : "No description provided";
-                    //TODO
-                    throw new RuntimeException("Error fetching tokens: " + error + " - " + errorDescription);
+                    throw new CalendarParseCodeException("Error fetching tokens: " + error + " - " + errorDescription);
                 }
 
                 return jsonNode;

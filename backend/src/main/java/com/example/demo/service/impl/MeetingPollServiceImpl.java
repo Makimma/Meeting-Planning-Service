@@ -252,6 +252,7 @@ public class MeetingPollServiceImpl implements MeetingPollService {
         Calendar calendar = calendarRepository.findByName("Google")
                 .orElseThrow(() -> new CalendarNotFoundException("Calendar not found"));
         if (connectedCalendarRepository.existsByUserAndCalendar(meeting.getUser(), calendar)) {
+            meeting.setCalendar(calendar);
             String eventId = googleCalendarService.createCalendarEvent(meeting.getUser(), meeting);
             if (eventId != null) {
                 meeting.setEventId(eventId);
