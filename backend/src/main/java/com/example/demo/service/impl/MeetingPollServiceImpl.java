@@ -8,6 +8,7 @@ import com.example.demo.request.TimeSlotRequest;
 import com.example.demo.request.VoteRequest;
 import com.example.demo.service.GoogleCalendarService;
 import com.example.demo.service.MeetingPollService;
+import com.example.demo.service.MeetingService;
 import com.example.demo.service.UserService;
 import com.example.demo.util.AuthUtils;
 
@@ -28,11 +29,10 @@ public class MeetingPollServiceImpl implements MeetingPollService {
     private final LocationRepository locationRepository;
     private final MeetingPollTimeSlotRepository meetingPollTimeSlotRepository;
     private final MeetingPollParticipantRepository meetingPollParticipantRepository;
-    private final MeetingRepository meetingRepository;
-    private final MeetingParticipantRepository meetingParticipantRepository;
     private final GoogleCalendarService googleCalendarService;
     private final ConnectedCalendarRepository connectedCalendarRepository;
     private final CalendarRepository calendarRepository;
+    private final MeetingService meetingService;
 
     @Autowired
     public MeetingPollServiceImpl(MeetingPollRepository meetingPollRepository,
@@ -40,21 +40,18 @@ public class MeetingPollServiceImpl implements MeetingPollService {
                                   LocationRepository locationRepository,
                                   MeetingPollTimeSlotRepository meetingPollTimeSlotRepository,
                                   MeetingPollParticipantRepository meetingPollParticipantRepository,
-                                  MeetingRepository meetingRepository,
-                                  MeetingParticipantRepository meetingParticipantRepository,
                                   GoogleCalendarService googleCalendarService,
                                   ConnectedCalendarRepository connectedCalendarRepository,
-                                  CalendarRepository calendarRepository) {
+                                  CalendarRepository calendarRepository, MeetingServiceImpl meetingService) {
         this.meetingPollRepository = meetingPollRepository;
         this.userService = userService;
         this.locationRepository = locationRepository;
         this.meetingPollTimeSlotRepository = meetingPollTimeSlotRepository;
         this.meetingPollParticipantRepository = meetingPollParticipantRepository;
-        this.meetingRepository = meetingRepository;
-        this.meetingParticipantRepository = meetingParticipantRepository;
         this.googleCalendarService = googleCalendarService;
         this.connectedCalendarRepository = connectedCalendarRepository;
         this.calendarRepository = calendarRepository;
+        this.meetingService = meetingService;
     }
 
     @Override
@@ -220,31 +217,12 @@ public class MeetingPollServiceImpl implements MeetingPollService {
 
         MeetingPollTimeSlot meetingPollTimeSlot = meetingPollTimeSlotRepository.findById(timeSlotId)
                 .orElseThrow(() -> new TimeSlotNotFoundException("TimeSlot not found"));
+
         if (!meetingPollTimeSlot.getMeetingPoll().getId().equals(meetingPoll.getId())) {
             throw new TimeSlotNotFoundException("TimeSlot not found");
         }
 
-        Meeting meeting = Meeting.builder()
-                .user(meetingPoll.getUser())
-                .title(meetingPoll.getTitle())
-                .description(meetingPoll.getDescription())
-                .beginAt(meetingPollTimeSlot.getBeginAt())
-                .endAt(meetingPollTimeSlot.getEndAt())
-                .location(meetingPoll.getLocation())
-                .build();
-        meeting = meetingRepository.save(meeting);
-
-        Meeting finalMeeting = meeting;
-        List<MeetingParticipant> meetingParticipants = meetingPoll.getMeetingPollParticipants().stream()
-                .map(participant -> {
-                    MeetingParticipant newParticipant = new MeetingParticipant();
-                    newParticipant.setParticipantName(participant.getParticipantName());
-                    newParticipant.setParticipantEmail(participant.getParticipantEmail());
-                    newParticipant.setMeeting(finalMeeting);
-                    return meetingParticipantRepository.save(newParticipant);
-                }).toList();
-
-        meeting.setParticipants(meetingParticipants);
+        Meeting meeting = meetingService.createMeeting(meetingPoll, meetingPollTimeSlot);
 
         //TODO добавить логику создания ссылки на встречу в зависимости от location(гугл мит и тд)
 
@@ -299,5 +277,4 @@ public class MeetingPollServiceImpl implements MeetingPollService {
                 .endAt(timeSlot.getEndAt())
                 .build();
     }
-
 }
