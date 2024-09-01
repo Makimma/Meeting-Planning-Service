@@ -4,11 +4,10 @@ import com.example.demo.entity.Calendar;
 import com.example.demo.entity.CalendarToken;
 import com.example.demo.entity.User;
 import com.example.demo.exception.CalendarAlreadyConnectedException;
-import com.example.demo.exception.CalendarNotFoundException;
 import com.example.demo.exception.CalendarParseCodeException;
-import com.example.demo.repository.CalendarRepository;
-import com.example.demo.repository.CalendarTokenRepository;
 import com.example.demo.repository.ConnectedCalendarRepository;
+import com.example.demo.service.CalendarService;
+import com.example.demo.service.CalendarTokenService;
 import com.example.demo.service.OAuthService;
 import com.example.demo.service.UserService;
 import com.example.demo.util.AuthUtils;
@@ -35,8 +34,11 @@ import java.util.List;
 
 @Service
 public class OAuthServiceImpl implements OAuthService {
+    private final UserService userService;
+    private final CalendarService calendarService;
+    private final CalendarTokenService calendarTokenService;
     private final ConnectedCalendarRepository connectedCalendarRepository;
-    private final CalendarRepository calendarRepository;
+
     @Value("${google.client-id}")
     private String clientId;
 
@@ -46,26 +48,22 @@ public class OAuthServiceImpl implements OAuthService {
     @Value("${google.redirect-uri}")
     private String redirectUri;
 
-    private final CalendarTokenRepository calendarTokenRepository;
-    private final UserService userService;
-
     @Autowired
-    public OAuthServiceImpl(CalendarTokenRepository calendarTokenRepository,
-                            UserService userService,
-                            ConnectedCalendarRepository connectedCalendarRepository,
-                            CalendarRepository calendarRepository) {
-        this.calendarTokenRepository = calendarTokenRepository;
+    public OAuthServiceImpl(UserService userService,
+                            CalendarService calendarService,
+                            CalendarTokenService calendarTokenService,
+                            ConnectedCalendarRepository connectedCalendarRepository) {
         this.userService = userService;
+        this.calendarService = calendarService;
+        this.calendarTokenService = calendarTokenService;
         this.connectedCalendarRepository = connectedCalendarRepository;
-        this.calendarRepository = calendarRepository;
     }
 
     @Override
     public JsonNode exchangeCodeForTokens(String code) {
         User currentUser = userService.findByEmail(AuthUtils.getCurrentUserEmail());
 
-        Calendar calendar = calendarRepository.findByName("Google")
-                .orElseThrow(() -> new CalendarNotFoundException("Calendar not found"));
+        Calendar calendar = calendarService.findByName("Google");
         if (connectedCalendarRepository.existsByUserAndCalendar(currentUser, calendar)) {
             throw new CalendarAlreadyConnectedException("Calendar already connected");
         }
@@ -104,9 +102,8 @@ public class OAuthServiceImpl implements OAuthService {
     @Override
     @Transactional
     public void refreshAccessToken() {
-        CalendarToken calendarToken = calendarTokenRepository
-                .findByUser(userService.findByEmail(AuthUtils.getCurrentUserEmail()))
-                .orElseThrow(() -> new CalendarNotFoundException("No CalendarToken found for user"));
+        CalendarToken calendarToken = calendarTokenService
+                .findByUser(userService.findByEmail(AuthUtils.getCurrentUserEmail()));
 
         try (CloseableHttpClient client = HttpClients.createDefault()) {
             HttpPost post = new HttpPost("https://oauth2.googleapis.com/token");
@@ -129,7 +126,7 @@ public class OAuthServiceImpl implements OAuthService {
 
                 calendarToken.setAccessToken(newAccessToken);
                 calendarToken.setExpiresAt(expiresAt);
-                calendarTokenRepository.saveAndFlush(calendarToken);
+                calendarTokenService.saveAndFlush(calendarToken);
 
             } catch (ParseException e) {
                 throw new CalendarParseCodeException("Error during token exchange");

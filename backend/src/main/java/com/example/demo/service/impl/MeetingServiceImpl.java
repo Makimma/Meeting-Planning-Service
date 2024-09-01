@@ -69,10 +69,9 @@ public class MeetingServiceImpl implements MeetingService {
 
         if (meeting.getEventId() != null) {
             if (meeting.getCalendar().getName().equals("Google")) {
-                googleCalendarService.deleteEventFromCalendar(meeting.getCalendar(), meeting.getEventId());
+                googleCalendarService.deleteEvent(meeting.getCalendar(), meeting.getEventId());
             }
         }
-
         meetingRepository.delete(meeting);
     }
 

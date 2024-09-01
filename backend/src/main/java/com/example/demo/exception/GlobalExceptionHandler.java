@@ -152,6 +152,13 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errors, HttpStatus.NOT_FOUND);
     }
 
+    @ExceptionHandler(CalendarTokenNotFoundException.class)
+    public ResponseEntity<Map<String, String>> handleCalendarTokenNotFoundException(CalendarTokenNotFoundException ex) {
+        Map<String, String> errors = new HashMap<>();
+        errors.put("error", ex.getMessage());
+        return new ResponseEntity<>(errors, HttpStatus.NOT_FOUND);
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, String>> handleException(Exception ex) {
         //FIXME не выводи все подряд

@@ -3,7 +3,6 @@ package com.example.demo.service.impl;
 import com.example.demo.exception.*;
 import com.example.demo.entity.ConfirmationCode;
 import com.example.demo.entity.User;
-import com.example.demo.repository.UserRepository;
 import com.example.demo.response.ConfirmationUserResponse;
 import com.example.demo.response.RegistrationResponse;
 import com.example.demo.response.ResendCodeResponse;
@@ -28,17 +27,15 @@ import jakarta.transaction.Transactional;
 public class RegistrationServiceImpl implements RegistrationService {
     private final ConfirmationCodeService confirmationCodeService;
     private final UserService userService;
-    private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final EmailSenderService emailSenderService;
 
     @Autowired
     public RegistrationServiceImpl(ConfirmationCodeService confirmationCodeService,
-                                   UserRepository userRepository,
                                    PasswordEncoder passwordEncoder,
-                                   UserService userService, EmailSenderService emailSenderService) {
+                                   UserService userService,
+                                   EmailSenderService emailSenderService) {
         this.confirmationCodeService = confirmationCodeService;
-        this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.userService = userService;
         this.emailSenderService = emailSenderService;
@@ -48,7 +45,7 @@ public class RegistrationServiceImpl implements RegistrationService {
         String link = user.getEmail().substring(0, user.getEmail().indexOf("@"));
 
         int i = 1;
-        while (userRepository.findByLink(link).isPresent()) {
+        while (userService.getOptionalByLink(link).isPresent()) {
             if (i > 1) {
                 link = link.substring(0, link.length() - 1);
             }
@@ -62,10 +59,8 @@ public class RegistrationServiceImpl implements RegistrationService {
     @Override
     @Transactional
     public RegistrationResponse createNewUser(String username, String email, String password) {
-        Optional<User> existingUser = userRepository.findByEmail(email);
-
-        User user;
-        user = existingUser.orElseGet(User::new);
+        Optional<User> existingUser = userService.getOptionalByEmail(email);
+        User user = existingUser.orElseGet(User::new);
 
         if (existingUser.isPresent() && existingUser.get().isEnabled()) {
             throw new UserAlreadyExistException("User already exist");
@@ -83,7 +78,6 @@ public class RegistrationServiceImpl implements RegistrationService {
         }
 
         emailSenderService.sendEmail(email, "Почтится", generateCode(user));
-
         return RegistrationResponse.builder().timestamp(ZonedDateTime.now()).build();
     }
 
@@ -101,9 +95,7 @@ public class RegistrationServiceImpl implements RegistrationService {
     @Override
     @Transactional
     public SendConfirmationResponse sendCode(String email) {
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
-
+        User user = userService.findByEmail(email);
         if (!user.isEnabled()) {
             throw new UsernameNotFoundException("User not found");
         }
@@ -122,17 +114,13 @@ public class RegistrationServiceImpl implements RegistrationService {
     @Override
     @Transactional
     public ResendCodeResponse resendCode(String email) {
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
-
+        User user = userService.findByEmail(email);
         ConfirmationCode currentConfirmationCode = confirmationCodeService.findFirstByUserOrderByIdDesc(user)
                 .orElseThrow(() -> new CodeNotFoundException("Token not found"));
 
         if (currentConfirmationCode.getConfirmedAt() != null) {
             throw new CodeNotExpiredException("Cannot resend confirmation code");
-        }
-
-        if (currentConfirmationCode.getCreatedAt().plusMinutes(1).isAfter(ZonedDateTime.now())) {
+        } else if (currentConfirmationCode.getCreatedAt().plusMinutes(1).isAfter(ZonedDateTime.now())) {
             throw new CodeNotExpiredException("Token already exist");
         } else if (currentConfirmationCode.getExpiresAt().isBefore(ZonedDateTime.now())) {
             throw new CodeExpiredException("Invalid token");
@@ -146,8 +134,7 @@ public class RegistrationServiceImpl implements RegistrationService {
     @Override
     @Transactional
     public ConfirmationUserResponse confirmCode(String email, String code) {
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+        User user = userService.findByEmail(email);
 
         ConfirmationCode currentConfirmationCode = confirmationCodeService.findFirstByUserOrderByIdDesc(user)
                 .orElseThrow(() -> new CodeNotFoundException("Token not found"));
@@ -161,7 +148,7 @@ public class RegistrationServiceImpl implements RegistrationService {
         }
 
         user.setEnabled(true);
-        userRepository.save(user);
+        userService.save(user);
 
         currentConfirmationCode.setConfirmedAt(ZonedDateTime.now());
         confirmationCodeService.save(currentConfirmationCode);

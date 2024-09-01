@@ -46,7 +46,7 @@ public class Meeting {
 
     //TODO Добавить ссылку на ивент
 
-    @OneToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "calendar_id")
     private Calendar calendar;
 

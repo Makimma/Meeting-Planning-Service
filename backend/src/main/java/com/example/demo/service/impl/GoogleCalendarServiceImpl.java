@@ -1,8 +1,8 @@
 package com.example.demo.service.impl;
 
 import com.example.demo.entity.*;
-import com.example.demo.repository.CalendarTokenRepository;
 import com.example.demo.repository.ConnectedCalendarRepository;
+import com.example.demo.service.CalendarTokenService;
 import com.example.demo.service.GoogleCalendarService;
 import com.example.demo.service.OAuthService;
 import com.example.demo.service.UserService;
@@ -28,25 +28,25 @@ import java.time.format.DateTimeFormatter;
 
 @Service
 public class GoogleCalendarServiceImpl implements GoogleCalendarService {
-    private final OAuthService oAuthService;
-    private final CalendarTokenRepository calendarTokenRepository;
-    private final ConnectedCalendarRepository connectedCalendarRepository;
     private final UserService userService;
+    private final OAuthService oAuthService;
+    private final CalendarTokenService calendarTokenService;
+    private final ConnectedCalendarRepository connectedCalendarRepository;
 
     @Autowired
-    public GoogleCalendarServiceImpl(OAuthService oAuthService,
-                                     CalendarTokenRepository calendarTokenRepository,
-                                     ConnectedCalendarRepository connectedCalendarRepository,
-                                     UserService userService) {
-        this.oAuthService = oAuthService;
-        this.calendarTokenRepository = calendarTokenRepository;
-        this.connectedCalendarRepository = connectedCalendarRepository;
+    public GoogleCalendarServiceImpl(UserService userService,
+                                     OAuthService oAuthService,
+                                     CalendarTokenService calendarTokenService,
+                                     ConnectedCalendarRepository connectedCalendarRepository) {
         this.userService = userService;
+        this.oAuthService = oAuthService;
+        this.connectedCalendarRepository = connectedCalendarRepository;
+        this.calendarTokenService = calendarTokenService;
     }
 
     @Override
-    public String createCalendarEvent(User user, Meeting meeting) {
-        CalendarToken calendarToken = calendarTokenRepository.findByUserAndCalendar(user, meeting.getCalendar())
+    public String createEvent(User user, Meeting meeting) {
+        CalendarToken calendarToken = calendarTokenService.getOptionalByUserAndCalendar(user, meeting.getCalendar())
                 .orElse(null);
 
         if (calendarToken == null || !connectedCalendarRepository.existsByUserAndCalendar(user, meeting.getCalendar())) {
@@ -104,11 +104,11 @@ public class GoogleCalendarServiceImpl implements GoogleCalendarService {
     }
 
     @Override
-    public void deleteEventFromCalendar(Calendar calendar, String eventId) {
+    public void deleteEvent(Calendar calendar, String eventId) {
         User user = userService.getOptionalByEmail(AuthUtils.getCurrentUserEmail())
                 .orElse(null);
 
-        CalendarToken calendarToken = calendarTokenRepository.findByUserAndCalendar(user, calendar)
+        CalendarToken calendarToken = calendarTokenService.getOptionalByUserAndCalendar(user, calendar)
                 .orElse(null);
 
         if (user == null || calendarToken == null) {

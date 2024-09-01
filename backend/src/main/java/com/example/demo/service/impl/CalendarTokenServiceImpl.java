@@ -4,10 +4,10 @@ import com.example.demo.entity.Calendar;
 import com.example.demo.entity.CalendarToken;
 import com.example.demo.entity.ConnectedCalendar;
 import com.example.demo.entity.User;
-import com.example.demo.exception.CalendarNotFoundException;
-import com.example.demo.repository.CalendarRepository;
+import com.example.demo.exception.CalendarTokenNotFoundException;
 import com.example.demo.repository.CalendarTokenRepository;
 import com.example.demo.repository.ConnectedCalendarRepository;
+import com.example.demo.service.CalendarService;
 import com.example.demo.service.CalendarTokenService;
 import com.example.demo.service.UserService;
 import com.example.demo.util.AuthUtils;
@@ -17,23 +17,40 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.ZonedDateTime;
+import java.util.Optional;
 
 @Service
 public class CalendarTokenServiceImpl implements CalendarTokenService {
-    private final CalendarTokenRepository calendarTokenRepository;
     private final UserService userService;
-    private final CalendarRepository calendarRepository;
+    private final CalendarService calendarService;
+    private final CalendarTokenRepository calendarTokenRepository;
     private final ConnectedCalendarRepository connectedCalendarRepository;
 
     @Autowired
     public CalendarTokenServiceImpl(CalendarTokenRepository calendarTokenRepository,
                                     UserService userService,
-                                    CalendarRepository calendarRepository,
-                                    ConnectedCalendarRepository connectedCalendarRepository) {
-        this.calendarTokenRepository = calendarTokenRepository;
+                                    ConnectedCalendarRepository connectedCalendarRepository,
+                                    CalendarService calendarService) {
         this.userService = userService;
-        this.calendarRepository = calendarRepository;
+        this.calendarService = calendarService;
+        this.calendarTokenRepository = calendarTokenRepository;
         this.connectedCalendarRepository = connectedCalendarRepository;
+    }
+
+    @Override
+    public Optional<CalendarToken> getOptionalByUserAndCalendar(User user, Calendar calendar) {
+        return calendarTokenRepository.findByUserAndCalendar(user, calendar);
+    }
+
+    @Override
+    public CalendarToken findByUser(User user) {
+        return calendarTokenRepository.findByUser(user)
+                .orElseThrow(() -> new CalendarTokenNotFoundException("Calendar Token not found"));
+    }
+
+    @Override
+    public CalendarToken saveAndFlush(CalendarToken calendarToken) {
+        return calendarTokenRepository.saveAndFlush(calendarToken);
     }
 
     @Override
@@ -51,22 +68,19 @@ public class CalendarTokenServiceImpl implements CalendarTokenService {
         ZonedDateTime expiresAt = ZonedDateTime.now().plusSeconds(expiresIn);
 
         User currentUser = userService.findByEmail(AuthUtils.getCurrentUserEmail());
-
-        Calendar calendar = calendarRepository.findByName("Google")
-                .orElseThrow(() -> new CalendarNotFoundException("Calendar not found"));
+        Calendar calendar = calendarService.findByName("Google");
 
         CalendarToken calendarToken = new CalendarToken();
         if (refreshToken.isEmpty()) {
-            calendarToken = calendarTokenRepository.findByUser(currentUser)
-                    .orElseThrow(() -> new CalendarNotFoundException("Calendar not found"));
+            calendarToken = findByUser(currentUser);
         }
         calendarToken.setUser(currentUser);
         calendarToken.setCalendar(calendar);
         calendarToken.setAccessToken(accessToken);
+        calendarToken.setExpiresAt(expiresAt);
         if (!refreshToken.isEmpty()) {
             calendarToken.setRefreshToken(refreshToken);
         }
-        calendarToken.setExpiresAt(expiresAt);
         calendarTokenRepository.save(calendarToken);
 
         ConnectedCalendar connectedCalendar = new ConnectedCalendar();
@@ -78,10 +92,7 @@ public class CalendarTokenServiceImpl implements CalendarTokenService {
     @Override
     public boolean isUserConnectedToGoogleCalendar() {
         User currentUser = userService.findByEmail(AuthUtils.getCurrentUserEmail());
-
-        Calendar calendar = calendarRepository.findByName("Google")
-                .orElseThrow(() -> new CalendarNotFoundException("Calendar not found"));
-
+        Calendar calendar = calendarService.findByName("Google");
         return connectedCalendarRepository.existsByUserAndCalendar(currentUser, calendar);
     }
 
@@ -89,10 +100,7 @@ public class CalendarTokenServiceImpl implements CalendarTokenService {
     @Transactional
     public void disconnectFromGoogleCalendar() {
         User user = userService.findByEmail(AuthUtils.getCurrentUserEmail());
-
-        Calendar calendar = calendarRepository.findByName("Google")
-                .orElseThrow(() -> new CalendarNotFoundException("Calendar not found"));
-
+        Calendar calendar = calendarService.findByName("Google");
         connectedCalendarRepository.deleteByUserAndCalendar(user, calendar);
     }
 }

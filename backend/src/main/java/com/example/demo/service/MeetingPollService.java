@@ -1,5 +1,6 @@
 package com.example.demo.service;
 
+import com.example.demo.entity.MeetingPoll;
 import com.example.demo.response.MeetingResponse;
 import com.example.demo.response.VoteCountResponse;
 import com.example.demo.request.TimeSlotRequest;
@@ -12,21 +13,18 @@ import java.util.List;
 
 @Service
 public interface MeetingPollService {
+    MeetingPoll findById(Long id);
     MeetingPollResponse createMeetingPoll(String title, String description, int duration, Long locationId, List<TimeSlotRequest> timeSlotRequests);
-
     MeetingPollResponse getMeetingPollInfo(Long meetingPollId);
-
-    List<MeetingPollResponse> getMeetingPollsByUser();
-
-    void vote(String userLink, Long meetingPollId, VoteRequest voteRequest);
-
     MeetingPollResponse getMeetingPollByUserLinkAndId(String userLink, Long meetingPollId);
-
-    void deleteMeetingPoll(Long meetingPollId);
-
-    List<VoteCountResponse> getVoteCountsForMeetingPoll(Long meetingPollId);
+    //TODO изменить опрос
 
     MeetingResponse createMeetingFromPoll(Long meetingPollId, Long timeSlotId);
 
-    //TODO изменить опрос
+    List<MeetingPollResponse> getMeetingPollsByUser();
+    List<VoteCountResponse> getVoteCountsForMeetingPoll(Long meetingPollId);
+
+    void vote(String userLink, Long meetingPollId, VoteRequest voteRequest);
+    void deleteMeetingPoll(Long meetingPollId);
+
 }

@@ -6,10 +6,7 @@ import com.example.demo.repository.*;
 import com.example.demo.response.*;
 import com.example.demo.request.TimeSlotRequest;
 import com.example.demo.request.VoteRequest;
-import com.example.demo.service.GoogleCalendarService;
-import com.example.demo.service.MeetingPollService;
-import com.example.demo.service.MeetingService;
-import com.example.demo.service.UserService;
+import com.example.demo.service.*;
 import com.example.demo.util.AuthUtils;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,34 +21,41 @@ import jakarta.transaction.Transactional;
 
 @Service
 public class MeetingPollServiceImpl implements MeetingPollService {
-    private final MeetingPollRepository meetingPollRepository;
     private final UserService userService;
-    private final LocationRepository locationRepository;
+    private final MeetingService meetingService;
+    private final CalendarService calendarService;
+    private final LocationService locationService;
+    private final GoogleCalendarService googleCalendarService;
+    private final MeetingPollRepository meetingPollRepository;
+    private final ConnectedCalendarRepository connectedCalendarRepository;
     private final MeetingPollTimeSlotRepository meetingPollTimeSlotRepository;
     private final MeetingPollParticipantRepository meetingPollParticipantRepository;
-    private final GoogleCalendarService googleCalendarService;
-    private final ConnectedCalendarRepository connectedCalendarRepository;
-    private final CalendarRepository calendarRepository;
-    private final MeetingService meetingService;
 
     @Autowired
     public MeetingPollServiceImpl(MeetingPollRepository meetingPollRepository,
                                   UserService userService,
-                                  LocationRepository locationRepository,
                                   MeetingPollTimeSlotRepository meetingPollTimeSlotRepository,
                                   MeetingPollParticipantRepository meetingPollParticipantRepository,
                                   GoogleCalendarService googleCalendarService,
                                   ConnectedCalendarRepository connectedCalendarRepository,
-                                  CalendarRepository calendarRepository, MeetingServiceImpl meetingService) {
-        this.meetingPollRepository = meetingPollRepository;
+                                  CalendarService calendarService,
+                                  MeetingServiceImpl meetingService,
+                                  LocationService locationService) {
         this.userService = userService;
-        this.locationRepository = locationRepository;
+        this.meetingService = meetingService;
+        this.calendarService = calendarService;
+        this.locationService = locationService;
+        this.googleCalendarService = googleCalendarService;
+        this.meetingPollRepository = meetingPollRepository;
+        this.connectedCalendarRepository = connectedCalendarRepository;
         this.meetingPollTimeSlotRepository = meetingPollTimeSlotRepository;
         this.meetingPollParticipantRepository = meetingPollParticipantRepository;
-        this.googleCalendarService = googleCalendarService;
-        this.connectedCalendarRepository = connectedCalendarRepository;
-        this.calendarRepository = calendarRepository;
-        this.meetingService = meetingService;
+    }
+
+    @Override
+    public MeetingPoll findById(Long id) {
+        return meetingPollRepository.findById(id)
+                .orElseThrow(() -> new MeetingPollNotFoundException("MeetingPoll not found"));
     }
 
     @Override
@@ -66,11 +70,8 @@ public class MeetingPollServiceImpl implements MeetingPollService {
         meetingPoll.setDescription(description);
         meetingPoll.setCreatedAt(ZonedDateTime.now());
         meetingPoll.setDuration(duration);
-
         meetingPoll.setUser(userService.findByEmail(AuthUtils.getCurrentUserEmail()));
-
-        meetingPoll.setLocation(locationRepository.findById(locationId)
-                .orElseThrow(() -> new LocationNotFoundException("Invalid Location")));
+        meetingPoll.setLocation(locationService.findById(locationId));
 
         MeetingPoll savedPoll = meetingPollRepository.save(meetingPoll);
 
@@ -94,12 +95,10 @@ public class MeetingPollServiceImpl implements MeetingPollService {
 
     @Override
     public MeetingPollResponse getMeetingPollInfo(Long meetingPollId) {
-        MeetingPoll meetingPoll = meetingPollRepository.findById(meetingPollId)
-                .orElseThrow(() -> new RuntimeException("MeetingPoll not found"));
-
+        MeetingPoll meetingPoll = findById(meetingPollId);
         if (!meetingPoll.getUser().getId().equals(
                 userService.findByEmail(AuthUtils.getCurrentUserEmail()).getId())) {
-            throw new UserNotFoundException("User Not Found");
+            throw new MeetingPollNotFoundException("MeetingPoll not found");
         }
 
         return toMeetingPollResponse(meetingPoll);
@@ -108,10 +107,9 @@ public class MeetingPollServiceImpl implements MeetingPollService {
     @Override
     @Transactional
     public void deleteMeetingPoll(Long meetingPollId) {
-        if (!meetingPollRepository.findById(meetingPollId)
-                .orElseThrow(() -> new MeetingPollNotFoundException("Meeting Poll not found")).getUser().getId().equals(
+        if (!findById(meetingPollId).getUser().getId().equals(
                         userService.findByEmail(AuthUtils.getCurrentUserEmail()).getId())) {
-            throw new UserNotFoundException("User Not Found");
+            throw new MeetingPollNotFoundException("MeetingPoll not found");
         }
         meetingPollRepository.deleteById(meetingPollId);
     }
@@ -130,8 +128,7 @@ public class MeetingPollServiceImpl implements MeetingPollService {
     public MeetingPollResponse getMeetingPollByUserLinkAndId(String userLink, Long meetingPollId) {
         userService.findByLink(userLink);
 
-        MeetingPoll meetingPoll = meetingPollRepository.findById(meetingPollId)
-                .orElseThrow(() -> new MeetingPollNotFoundException("MeetingPoll not found"));
+        MeetingPoll meetingPoll = findById(meetingPollId);
 
         return toMeetingPollResponse(meetingPoll);
     }
@@ -141,9 +138,7 @@ public class MeetingPollServiceImpl implements MeetingPollService {
     public void vote(String userLink, Long meetingPollId, VoteRequest voteRequest) {
         userService.findByLink(userLink);
 
-        MeetingPoll meetingPoll = meetingPollRepository.findById(meetingPollId)
-                .orElseThrow(() -> new MeetingPollNotFoundException("MeetingPoll not found"));
-
+        MeetingPoll meetingPoll = findById(meetingPollId);
         if (meetingPollParticipantRepository.existsByMeetingPollAndParticipantEmail(meetingPoll, voteRequest.getParticipantEmail())) {
             throw new UserAlreadyVoteException("User has already voted in this poll");
         }
@@ -166,9 +161,7 @@ public class MeetingPollServiceImpl implements MeetingPollService {
 
     @Override
     public List<VoteCountResponse> getVoteCountsForMeetingPoll(Long meetingPollId) {
-        MeetingPoll meetingPoll = meetingPollRepository.findById(meetingPollId)
-                .orElseThrow(() -> new RuntimeException("MeetingPoll not found"));
-
+        MeetingPoll meetingPoll = findById(meetingPollId);
         if (!meetingPoll.getUser().getEmail().equals(AuthUtils.getCurrentUserEmail())) {
             throw new UserNotFoundException("User Not Found");
         }
@@ -191,7 +184,6 @@ public class MeetingPollServiceImpl implements MeetingPollService {
             voteCountResponse.setEndAt(timeSlot.getEndAt());
             voteCountResponse.setVoteCount(participants.size());
             voteCountResponse.setParticipants(participantResponses);
-
             return voteCountResponse;
         }).collect(Collectors.toList());
     }
@@ -199,20 +191,15 @@ public class MeetingPollServiceImpl implements MeetingPollService {
     @Override
     @Transactional
     public MeetingResponse createMeetingFromPoll(Long meetingPollId, Long timeSlotId) {
-        MeetingPoll meetingPoll = meetingPollRepository.findById(meetingPollId)
-                .orElseThrow(() -> new MeetingPollNotFoundException("MeetingPoll not found"));
-
+        MeetingPoll meetingPoll = findById(meetingPollId);
         if (!meetingPoll.getUser().getEmail().equals(AuthUtils.getCurrentUserEmail())) {
             throw new UserNotFoundException("User not found");
-        }
-
-        if (!meetingPoll.isActive()) {
+        } else if (!meetingPoll.isActive()) {
             throw new MeetingAlreadyExistException("Meeting already created");
         }
 
         MeetingPollTimeSlot meetingPollTimeSlot = meetingPollTimeSlotRepository.findById(timeSlotId)
                 .orElseThrow(() -> new TimeSlotNotFoundException("TimeSlot not found"));
-
         if (!meetingPollTimeSlot.getMeetingPoll().getId().equals(meetingPoll.getId())) {
             throw new TimeSlotNotFoundException("TimeSlot not found");
         }
@@ -222,11 +209,10 @@ public class MeetingPollServiceImpl implements MeetingPollService {
         //TODO добавить логику создания ссылки на встречу в зависимости от location(гугл мит и тд)
 
         //Добавление встречи в календарь пользователя
-        Calendar calendar = calendarRepository.findByName("Google")
-                .orElseThrow(() -> new CalendarNotFoundException("Calendar not found"));
+        Calendar calendar = calendarService.findByName("Google");
         if (connectedCalendarRepository.existsByUserAndCalendar(meeting.getUser(), calendar)) {
             meeting.setCalendar(calendar);
-            String eventId = googleCalendarService.createCalendarEvent(meeting.getUser(), meeting);
+            String eventId = googleCalendarService.createEvent(meeting.getUser(), meeting);
             if (eventId != null) {
                 meeting.setEventId(eventId);
                 meeting.setCalendar(calendar);

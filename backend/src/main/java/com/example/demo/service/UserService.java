@@ -12,6 +12,7 @@ import java.util.Optional;
 @Service
 public interface UserService extends UserDetailsService {
     Optional<User> getOptionalByEmail(String email);
+    Optional<User> getOptionalByLink(String link);
     User findByEmail(String email);
     User findByLink(String userLink);
     User save(User user);

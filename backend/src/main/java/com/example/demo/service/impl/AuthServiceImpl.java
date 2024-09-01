@@ -30,19 +30,19 @@ public class AuthServiceImpl implements AuthService {
     @Value("${token.refresh.lifetime}")
     private Duration refreshLifetime;
 
-    private final AuthenticationManager authenticationManager;
     private final UserService userService;
     private final JwtTokenUtils jwtTokenUtils;
+    private final AuthenticationManager authenticationManager;
     private final RefreshTokenRepository refreshTokenRepository;
 
     @Autowired
-    public AuthServiceImpl(AuthenticationManager authenticationManager,
-                           UserService userService,
+    public AuthServiceImpl(UserService userService,
                            JwtTokenUtils jwtTokenUtils,
+                           AuthenticationManager authenticationManager,
                            RefreshTokenRepository refreshTokenRepository) {
-        this.authenticationManager = authenticationManager;
         this.userService = userService;
         this.jwtTokenUtils = jwtTokenUtils;
+        this.authenticationManager = authenticationManager;
         this.refreshTokenRepository = refreshTokenRepository;
     }
 
@@ -85,16 +85,11 @@ public class AuthServiceImpl implements AuthService {
         if (cookies != null) {
             for (Cookie cookie : cookies) {
                 if (cookie.getName().equals("refresh_token")) {
-                    String refreshTokenValue = cookie.getValue();
-
-                    RefreshToken refreshToken = refreshTokenRepository.findByToken(refreshTokenValue)
+                    RefreshToken refreshToken = refreshTokenRepository.findByToken(cookie.getValue())
                             .orElseThrow(() -> new RefreshTokenNotFoundException("Refresh token not found"));
-
                     if (refreshToken.getExpiresAt().isBefore(ZonedDateTime.now())) {
                         throw new RefreshTokenExpiredException("Refresh token expired");
-                    }
-
-                    if (refreshToken.isRevoked()) {
+                    } else if (refreshToken.isRevoked()) {
                         throw new RefreshTokenRevokedException("Refresh token revoked");
                     }
 
@@ -114,16 +109,14 @@ public class AuthServiceImpl implements AuthService {
         if (cookies != null) {
             for (Cookie cookie : cookies) {
                 if (cookie.getName().equals("refreshToken")) {
-                    String refreshTokenValue = cookie.getValue();
-                    RefreshToken refreshToken = refreshTokenRepository.findByToken(refreshTokenValue)
+                    RefreshToken refreshToken = refreshTokenRepository.findByToken(cookie.getValue())
                             .orElseThrow(() -> new RefreshTokenNotFoundException("Invalid refresh token"));
-
                     refreshToken.setRevoked(true);
                     refreshTokenRepository.save(refreshToken);
                 }
             }
+        } else {
+            throw new RefreshTokenNotFoundException("Refresh token not found");
         }
-        throw new RefreshTokenNotFoundException("Refresh token not found");
     }
-
 }

@@ -9,6 +9,6 @@ import java.util.Optional;
 
 public interface CalendarTokenRepository extends JpaRepository<CalendarToken, Long> {
     Optional<CalendarToken> findByUser(User user);
-    boolean existsByUser(User user);
+
     Optional<CalendarToken> findByUserAndCalendar(User user, Calendar calendar);
 }

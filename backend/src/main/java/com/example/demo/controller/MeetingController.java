@@ -30,6 +30,7 @@ public class MeetingController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<String> deleteMeeting(@PathVariable Long id) {
+        //TODO вернуть void или сообщение?
         meetingService.deleteMeeting(id);
         return ResponseEntity.ok("Meeting deleted");
     }
