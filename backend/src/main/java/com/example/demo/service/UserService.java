@@ -11,23 +11,18 @@ import java.util.Optional;
 
 @Service
 public interface UserService extends UserDetailsService {
-    Optional<User> findByEmail(String email);
-
-    Optional<User> findByEmailAndEnabledIsTrue(String email);
-
-    boolean existsByEmailAndEnabledIsTrue(String email);
-
+    Optional<User> getOptionalByEmail(String email);
+    User findByEmail(String email);
+    User findByLink(String userLink);
     User save(User user);
 
     void deleteById(Long id);
+    void changePassword(String newPassword);
+    boolean existsByEmailAndEnabledIsTrue(String email);
 
     UserInfoResponse getMyInfo();
-
     UserInfoResponse getUserInfo(Long userId);
-
     UserInfoResponse updateUserInfo(UpdateUserRequest updateUserRequest);
 
-    void changePassword(String newPassword);
 
-    Optional<User> findByLink(String userLink);
 }

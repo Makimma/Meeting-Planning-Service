@@ -2,7 +2,6 @@ package com.example.demo.service.impl;
 
 import com.example.demo.entity.Calendar;
 import com.example.demo.entity.CalendarToken;
-import com.example.demo.entity.ConnectedCalendar;
 import com.example.demo.entity.User;
 import com.example.demo.exception.CalendarAlreadyConnectedException;
 import com.example.demo.exception.CalendarNotFoundException;
@@ -27,7 +26,6 @@ import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.message.BasicNameValuePair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -64,8 +62,7 @@ public class OAuthServiceImpl implements OAuthService {
 
     @Override
     public JsonNode exchangeCodeForTokens(String code) {
-        User currentUser = userService.findByEmail(AuthUtils.getCurrentUserEmail())
-                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+        User currentUser = userService.findByEmail(AuthUtils.getCurrentUserEmail());
 
         Calendar calendar = calendarRepository.findByName("Google")
                 .orElseThrow(() -> new CalendarNotFoundException("Calendar not found"));
@@ -108,8 +105,7 @@ public class OAuthServiceImpl implements OAuthService {
     @Transactional
     public void refreshAccessToken() {
         CalendarToken calendarToken = calendarTokenRepository
-                .findByUser(userService.findByEmail(AuthUtils.getCurrentUserEmail())
-                        .orElseThrow(() -> new UsernameNotFoundException("User not found")))
+                .findByUser(userService.findByEmail(AuthUtils.getCurrentUserEmail()))
                 .orElseThrow(() -> new CalendarNotFoundException("No CalendarToken found for user"));
 
         try (CloseableHttpClient client = HttpClients.createDefault()) {

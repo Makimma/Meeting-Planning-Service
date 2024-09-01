@@ -67,8 +67,7 @@ public class MeetingPollServiceImpl implements MeetingPollService {
         meetingPoll.setCreatedAt(ZonedDateTime.now());
         meetingPoll.setDuration(duration);
 
-        meetingPoll.setUser(userService.findByEmail(AuthUtils.getCurrentUserEmail())
-                .orElseThrow(() -> new UserNotFoundException(AuthUtils.getCurrentUserEmail())));
+        meetingPoll.setUser(userService.findByEmail(AuthUtils.getCurrentUserEmail()));
 
         meetingPoll.setLocation(locationRepository.findById(locationId)
                 .orElseThrow(() -> new LocationNotFoundException("Invalid Location")));
@@ -99,8 +98,7 @@ public class MeetingPollServiceImpl implements MeetingPollService {
                 .orElseThrow(() -> new RuntimeException("MeetingPoll not found"));
 
         if (!meetingPoll.getUser().getId().equals(
-                userService.findByEmail(AuthUtils.getCurrentUserEmail())
-                        .orElseThrow(() -> new UserNotFoundException("User Not Found")).getId())) {
+                userService.findByEmail(AuthUtils.getCurrentUserEmail()).getId())) {
             throw new UserNotFoundException("User Not Found");
         }
 
@@ -112,8 +110,7 @@ public class MeetingPollServiceImpl implements MeetingPollService {
     public void deleteMeetingPoll(Long meetingPollId) {
         if (!meetingPollRepository.findById(meetingPollId)
                 .orElseThrow(() -> new MeetingPollNotFoundException("Meeting Poll not found")).getUser().getId().equals(
-                        userService.findByEmail(AuthUtils.getCurrentUserEmail())
-                                .orElseThrow(() -> new UserNotFoundException("User Not Found")).getId())) {
+                        userService.findByEmail(AuthUtils.getCurrentUserEmail()).getId())) {
             throw new UserNotFoundException("User Not Found");
         }
         meetingPollRepository.deleteById(meetingPollId);
@@ -121,8 +118,8 @@ public class MeetingPollServiceImpl implements MeetingPollService {
 
     @Override
     public List<MeetingPollResponse> getMeetingPollsByUser() {
-        List<MeetingPoll> meetingPolls = meetingPollRepository.findAllByUser(userService.findByEmail(AuthUtils.getCurrentUserEmail())
-                .orElseThrow(() -> new UserNotFoundException("User not found")));
+        List<MeetingPoll> meetingPolls = meetingPollRepository
+                .findAllByUser(userService.findByEmail(AuthUtils.getCurrentUserEmail()));
 
         return meetingPolls.stream()
                 .map(this::toMeetingPollResponse)
@@ -131,8 +128,7 @@ public class MeetingPollServiceImpl implements MeetingPollService {
 
     @Override
     public MeetingPollResponse getMeetingPollByUserLinkAndId(String userLink, Long meetingPollId) {
-        userService.findByLink(userLink)
-                .orElseThrow(() -> new UserNotFoundException("Meeting poll not found"));
+        userService.findByLink(userLink);
 
         MeetingPoll meetingPoll = meetingPollRepository.findById(meetingPollId)
                 .orElseThrow(() -> new MeetingPollNotFoundException("MeetingPoll not found"));
@@ -143,8 +139,7 @@ public class MeetingPollServiceImpl implements MeetingPollService {
     @Override
     @Transactional
     public void vote(String userLink, Long meetingPollId, VoteRequest voteRequest) {
-        userService.findByLink(userLink)
-                .orElseThrow(() -> new UserNotFoundException("User not found"));
+        userService.findByLink(userLink);
 
         MeetingPoll meetingPoll = meetingPollRepository.findById(meetingPollId)
                 .orElseThrow(() -> new MeetingPollNotFoundException("MeetingPoll not found"));
@@ -241,6 +236,10 @@ public class MeetingPollServiceImpl implements MeetingPollService {
         meetingPoll.setActive(false);
         meetingPollRepository.save(meetingPoll);
 
+        return toMeetingResponse(meeting);
+    }
+
+    private MeetingResponse toMeetingResponse(Meeting meeting) {
         return MeetingResponse.builder()
                 .id(meeting.getId())
                 .title(meeting.getTitle())

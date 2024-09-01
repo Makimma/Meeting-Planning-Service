@@ -69,7 +69,7 @@ public class AuthServiceImpl implements AuthService {
         refreshToken.setToken(token);
         refreshToken.setCreatedAt(ZonedDateTime.now());
         refreshToken.setExpiresAt(ZonedDateTime.now().plusMinutes(refreshLifetime.toMinutes()));
-        refreshToken.setUser(userService.findByEmail(email).orElseThrow(() -> new UserNotFoundException("User not found")));
+        refreshToken.setUser(userService.findByEmail(email));
         refreshTokenRepository.save(refreshToken);
 
         return token;

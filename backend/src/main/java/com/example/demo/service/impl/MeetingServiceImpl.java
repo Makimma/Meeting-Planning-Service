@@ -12,8 +12,6 @@ import com.example.demo.service.UserService;
 import com.example.demo.util.AuthUtils;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -85,8 +83,7 @@ public class MeetingServiceImpl implements MeetingService {
 
     @Override
     public List<MeetingResponse> getAllUserMeetingResponses() {
-        User user = userService.findByEmail(AuthUtils.getCurrentUserEmail())
-                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+        User user = userService.findByEmail(AuthUtils.getCurrentUserEmail());
 
         List<Meeting> meetings = meetingRepository.findAllByUser(user);
         return meetings.stream()

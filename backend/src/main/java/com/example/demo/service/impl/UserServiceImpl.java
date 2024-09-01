@@ -16,9 +16,9 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.Optional;
-
 import jakarta.transaction.Transactional;
+
+import java.util.Optional;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -33,16 +33,15 @@ public class UserServiceImpl implements UserService {
         this.passwordEncoder = passwordEncoder;
     }
 
-    //FIXME возвращать User
     @Override
-    public Optional<User> findByEmail(String email) {
+    public Optional<User> getOptionalByEmail(String email) {
         return userRepository.findByEmail(email);
     }
 
-    //FIXME возвращать User
     @Override
-    public Optional<User> findByEmailAndEnabledIsTrue(String email) {
-        return userRepository.findByEmailAndEnabledIsTrue(email);
+    public User findByEmail(String email) {
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
     }
 
     @Override
@@ -97,10 +96,10 @@ public class UserServiceImpl implements UserService {
         userRepository.save(user);
     }
 
-    //FIXME возвращать User
     @Override
-    public Optional<User> findByLink(String userLink) {
-        return userRepository.findByLink(userLink);
+    public User findByLink(String userLink) {
+        return userRepository.findByLink(userLink)
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
     }
 
     @Override

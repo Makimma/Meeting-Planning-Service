@@ -1,7 +1,6 @@
 package com.example.demo.service.impl;
 
 import com.example.demo.entity.*;
-import com.example.demo.exception.CalendarNotFoundException;
 import com.example.demo.repository.CalendarTokenRepository;
 import com.example.demo.repository.ConnectedCalendarRepository;
 import com.example.demo.service.GoogleCalendarService;
@@ -21,7 +20,6 @@ import org.apache.hc.core5.http.ParseException;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -107,7 +105,7 @@ public class GoogleCalendarServiceImpl implements GoogleCalendarService {
 
     @Override
     public void deleteEventFromCalendar(Calendar calendar, String eventId) {
-        User user = userService.findByEmail(AuthUtils.getCurrentUserEmail())
+        User user = userService.getOptionalByEmail(AuthUtils.getCurrentUserEmail())
                 .orElse(null);
 
         CalendarToken calendarToken = calendarTokenRepository.findByUserAndCalendar(user, calendar)

@@ -14,7 +14,6 @@ import com.example.demo.util.AuthUtils;
 import com.fasterxml.jackson.databind.JsonNode;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.time.ZonedDateTime;
@@ -51,8 +50,7 @@ public class CalendarTokenServiceImpl implements CalendarTokenService {
         long expiresIn = tokenData.get("expires_in").asLong();
         ZonedDateTime expiresAt = ZonedDateTime.now().plusSeconds(expiresIn);
 
-        User currentUser = userService.findByEmail(AuthUtils.getCurrentUserEmail())
-                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+        User currentUser = userService.findByEmail(AuthUtils.getCurrentUserEmail());
 
         Calendar calendar = calendarRepository.findByName("Google")
                 .orElseThrow(() -> new CalendarNotFoundException("Calendar not found"));
@@ -79,8 +77,7 @@ public class CalendarTokenServiceImpl implements CalendarTokenService {
 
     @Override
     public boolean isUserConnectedToGoogleCalendar() {
-        User currentUser = userService.findByEmail(AuthUtils.getCurrentUserEmail())
-                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+        User currentUser = userService.findByEmail(AuthUtils.getCurrentUserEmail());
 
         Calendar calendar = calendarRepository.findByName("Google")
                 .orElseThrow(() -> new CalendarNotFoundException("Calendar not found"));
@@ -91,8 +88,7 @@ public class CalendarTokenServiceImpl implements CalendarTokenService {
     @Override
     @Transactional
     public void disconnectFromGoogleCalendar() {
-        User user = userService.findByEmail(AuthUtils.getCurrentUserEmail())
-                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+        User user = userService.findByEmail(AuthUtils.getCurrentUserEmail());
 
         Calendar calendar = calendarRepository.findByName("Google")
                 .orElseThrow(() -> new CalendarNotFoundException("Calendar not found"));
