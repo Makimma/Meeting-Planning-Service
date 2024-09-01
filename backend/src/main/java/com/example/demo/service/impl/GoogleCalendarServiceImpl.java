@@ -1,7 +1,6 @@
 package com.example.demo.service.impl;
 
 import com.example.demo.entity.*;
-import com.example.demo.repository.ConnectedCalendarRepository;
 import com.example.demo.service.CalendarTokenService;
 import com.example.demo.service.GoogleCalendarService;
 import com.example.demo.service.OAuthService;
@@ -31,32 +30,22 @@ public class GoogleCalendarServiceImpl implements GoogleCalendarService {
     private final UserService userService;
     private final OAuthService oAuthService;
     private final CalendarTokenService calendarTokenService;
-    private final ConnectedCalendarRepository connectedCalendarRepository;
 
     @Autowired
     public GoogleCalendarServiceImpl(UserService userService,
                                      OAuthService oAuthService,
-                                     CalendarTokenService calendarTokenService,
-                                     ConnectedCalendarRepository connectedCalendarRepository) {
+                                     CalendarTokenService calendarTokenService) {
         this.userService = userService;
         this.oAuthService = oAuthService;
-        this.connectedCalendarRepository = connectedCalendarRepository;
         this.calendarTokenService = calendarTokenService;
     }
 
     @Override
     public String createEvent(User user, Meeting meeting) {
-        CalendarToken calendarToken = calendarTokenService.getOptionalByUserAndCalendar(user, meeting.getCalendar())
-                .orElse(null);
-
-        if (calendarToken == null || !connectedCalendarRepository.existsByUserAndCalendar(user, meeting.getCalendar())) {
+        String accessToken = getAccessToken(meeting.getCalendar());
+        if (accessToken == null) {
             return null;
         }
-
-        if (calendarToken.getExpiresAt().isBefore(ZonedDateTime.now())) {
-            oAuthService.refreshAccessToken();
-        }
-        String accessToken = calendarToken.getAccessToken();
 
         // Запрос
         String calendarId = "primary";
@@ -105,29 +94,20 @@ public class GoogleCalendarServiceImpl implements GoogleCalendarService {
 
     @Override
     public void deleteEvent(Calendar calendar, String eventId) {
-        User user = userService.getOptionalByEmail(AuthUtils.getCurrentUserEmail())
-                .orElse(null);
-
-        CalendarToken calendarToken = calendarTokenService.getOptionalByUserAndCalendar(user, calendar)
-                .orElse(null);
-
-        if (user == null || calendarToken == null) {
+        String accessToken = getAccessToken(calendar);
+        if (accessToken == null) {
             return;
         }
 
-        if (calendarToken.getExpiresAt().isBefore(ZonedDateTime.now())) {
-            oAuthService.refreshAccessToken();
-        }
-        String accessToken = calendarToken.getAccessToken();
-
-        String url = String.format("https://www.googleapis.com/calendar/v3/calendars/%s/events/%s", "primary", eventId);
+        String calendarId = "primary";
+        String url = String.format("https://www.googleapis.com/calendar/v3/calendars/%s/events/%s", calendarId, eventId);
         HttpDelete delete = new HttpDelete(url);
         delete.setHeader("Authorization", "Bearer " + accessToken);
 
         try (CloseableHttpClient client = HttpClients.createDefault();
              CloseableHttpResponse response = client.execute(delete)) {
 
-            if (response.getCode() != 204) { // 204 No Content означает успешное удаление
+            if (response.getCode() != 204) { // 204 означает успешное удаление
                 String responseBody = EntityUtils.toString(response.getEntity());
                 throw new RuntimeException("Failed to delete calendar event. Response: " + responseBody);
             }
@@ -136,5 +116,22 @@ public class GoogleCalendarServiceImpl implements GoogleCalendarService {
         } catch (ParseException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private String getAccessToken(Calendar calendar) {
+        User user = userService.getOptionalByEmail(AuthUtils.getCurrentUserEmail())
+                .orElse(null);
+
+        CalendarToken calendarToken = calendarTokenService.getOptionalByUserAndCalendar(user, calendar)
+                .orElse(null);
+
+        if (user == null || calendarToken == null) {
+            return null;
+        }
+
+        if (calendarToken.getExpiresAt().isBefore(ZonedDateTime.now())) {
+            oAuthService.refreshAccessToken();
+        }
+        return calendarToken.getAccessToken();
     }
 }
