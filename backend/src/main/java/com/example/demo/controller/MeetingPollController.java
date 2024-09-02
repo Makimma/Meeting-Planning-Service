@@ -33,7 +33,8 @@ public class MeetingPollController {
                 meetingPollRequest.getDescription(),
                 meetingPollRequest.getDuration(),
                 meetingPollRequest.getLocationId(),
-                meetingPollRequest.getTimeSlots()));
+                meetingPollRequest.getTimeSlots(),
+                meetingPollRequest.getAddress()));
     }
 
     @GetMapping("/{meetingPollId}")

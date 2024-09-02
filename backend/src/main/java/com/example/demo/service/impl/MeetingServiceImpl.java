@@ -44,6 +44,7 @@ public class MeetingServiceImpl implements MeetingService {
                 .beginAt(meetingPollTimeSlot.getBeginAt())
                 .endAt(meetingPollTimeSlot.getEndAt())
                 .location(meetingPoll.getLocation())
+                .physicalAddress(meetingPoll.getAddress())
                 .build();
         meeting = meetingRepository.save(meeting);
 
@@ -102,6 +103,7 @@ public class MeetingServiceImpl implements MeetingService {
                 .title(meeting.getTitle())
                 .description(meeting.getDescription())
                 .locationId(meeting.getLocation().getId())
+                .address(meeting.getPhysicalAddress())
                 .beginAt(meeting.getBeginAt())
                 .endAt(meeting.getEndAt())
                 .participants(meeting.getParticipants().stream()

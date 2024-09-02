@@ -64,12 +64,14 @@ public class MeetingPollServiceImpl implements MeetingPollService {
                                                  String description,
                                                  int duration,
                                                  Long locationId,
-                                                 List<TimeSlotRequest> timeSlotRequests) {
+                                                 List<TimeSlotRequest> timeSlotRequests,
+                                                 String address) {
         MeetingPoll meetingPoll = new MeetingPoll();
         meetingPoll.setTitle(title);
         meetingPoll.setDescription(description);
         meetingPoll.setCreatedAt(ZonedDateTime.now());
         meetingPoll.setDuration(duration);
+        meetingPoll.setAddress(address);
         meetingPoll.setUser(userService.findByEmail(AuthUtils.getCurrentUserEmail()));
         meetingPoll.setLocation(locationService.findById(locationId));
 
@@ -206,8 +208,6 @@ public class MeetingPollServiceImpl implements MeetingPollService {
 
         Meeting meeting = meetingService.createMeeting(meetingPoll, meetingPollTimeSlot);
 
-        //TODO добавить логику создания ссылки на встречу в зависимости от location(гугл мит и тд)
-
         //Добавление встречи в календарь пользователя
         Calendar calendar = calendarService.findByName("Google");
         if (connectedCalendarRepository.existsByUserAndCalendar(meeting.getUser(), calendar)) {
@@ -215,7 +215,6 @@ public class MeetingPollServiceImpl implements MeetingPollService {
             String eventId = googleCalendarService.createEvent(meeting.getUser(), meeting);
             if (eventId != null) {
                 meeting.setEventId(eventId);
-                meeting.setCalendar(calendar);
             }
         }
 
@@ -231,6 +230,7 @@ public class MeetingPollServiceImpl implements MeetingPollService {
                 .title(meeting.getTitle())
                 .description(meeting.getDescription())
                 .locationId(meeting.getLocation().getId())
+                .address(meeting.getPhysicalAddress())
                 .beginAt(meeting.getBeginAt())
                 .endAt(meeting.getEndAt())
                 .participants(meeting.getParticipants().stream()
@@ -247,6 +247,7 @@ public class MeetingPollServiceImpl implements MeetingPollService {
                 .description(meetingPoll.getDescription())
                 .locationId(meetingPoll.getLocation().getId())
                 .locationName(meetingPoll.getLocation().getName())
+                .address(meetingPoll.getAddress())
                 .creatorName(meetingPoll.getUser().getUsername())
                 .timeSlots(meetingPoll.getMeetingPollTimeSlots()
                         .stream()

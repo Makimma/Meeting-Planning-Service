@@ -29,6 +29,9 @@ public class MeetingPollRequest {
     @NotNull(message = "Location ID is required")
     private Long locationId;
 
+    @Size(max = 255, message = "Address must not exceed 255 characters")
+    private String address;
+
     @JsonProperty("time_slots")
     @NotNull(message = "Time slots are required")
     @Size(min = 1, message = "At least one time slot must be provided")

@@ -27,6 +27,8 @@ public class MeetingPollResponse {
     @JsonProperty("location_name")
     private String locationName;
 
+    private String address;
+
     @JsonProperty("creator_name")
     private String creatorName;
 

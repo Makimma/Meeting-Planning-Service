@@ -1,11 +1,9 @@
 package com.example.demo.service.impl;
 
 import com.example.demo.entity.*;
-import com.example.demo.service.CalendarTokenService;
-import com.example.demo.service.GoogleCalendarService;
-import com.example.demo.service.OAuthService;
-import com.example.demo.service.UserService;
+import com.example.demo.service.*;
 import com.example.demo.util.AuthUtils;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -29,14 +27,17 @@ import java.time.format.DateTimeFormatter;
 public class GoogleCalendarServiceImpl implements GoogleCalendarService {
     private final UserService userService;
     private final OAuthService oAuthService;
+    private final ConferenceService conferenceService;
     private final CalendarTokenService calendarTokenService;
 
     @Autowired
     public GoogleCalendarServiceImpl(UserService userService,
                                      OAuthService oAuthService,
+                                     ConferenceService conferenceService,
                                      CalendarTokenService calendarTokenService) {
         this.userService = userService;
         this.oAuthService = oAuthService;
+        this.conferenceService = conferenceService;
         this.calendarTokenService = calendarTokenService;
     }
 
@@ -61,11 +62,10 @@ public class GoogleCalendarServiceImpl implements GoogleCalendarService {
         ObjectNode event = mapper.createObjectNode();
 
         event.put("summary", meeting.getTitle());
-        //TODO ссылка на встречу event.put("description", eventRequest.getDescription() + "\nMeeting link: " + meetingLink);
         event.put("description", meeting.getDescription());
         event.putObject("start").put("dateTime", meeting.getBeginAt().format(formatter));
         event.putObject("end").put("dateTime", meeting.getEndAt().format(formatter));
-        event.put("location", meeting.getLocation().getName());
+        event.put("description", meeting.getDescription());
 
         ArrayNode attendees = event.putArray("attendees");
         for (String email : meeting.getParticipants().stream().map(MeetingParticipant::getParticipantEmail).toList()) {
@@ -73,12 +73,19 @@ public class GoogleCalendarServiceImpl implements GoogleCalendarService {
             attendee.put("email", email);
         }
 
-        // Добавление Google Meet конференции
-        ObjectNode conferenceData = event.putObject("conferenceData");
-        ObjectNode createRequest = conferenceData.putObject("createRequest");
-        ObjectNode conferenceSolutionKey = createRequest.putObject("conferenceSolutionKey");
-        conferenceSolutionKey.put("type", "hangoutsMeet");  // Указываем тип конференции Google Meet
-        createRequest.put("requestId", java.util.UUID.randomUUID().toString());  // Уникальный идентификатор запроса
+        String conferenceType = meeting.getLocation().getName();
+        if ("Google Meet".equalsIgnoreCase(conferenceType)) {
+            try {
+                String conferenceLink = conferenceService.createConference(meeting);
+                event.set("conferenceData", mapper.readTree(conferenceLink));
+                event.put("location", meeting.getLocation().getName());
+            } catch (JsonProcessingException ignored) {
+            }
+        } else if ("On-Site".equalsIgnoreCase(conferenceType)) {
+            event.put("location", meeting.getPhysicalAddress());
+        } /*else if ("Zoom".equalsIgnoreCase(conferenceType)) {
+            // TODO: добавить логику для интеграции с Zoom API
+        }*/
 
         StringEntity entity = new StringEntity(event.toString());
         post.setEntity(entity);
@@ -92,9 +99,10 @@ public class GoogleCalendarServiceImpl implements GoogleCalendarService {
 
             String responseBody = EntityUtils.toString(response.getEntity());
             JsonNode jsonNode = mapper.readTree(responseBody);
+            meeting.setConferenceLink(jsonNode.path("hangoutLink").asText());
 
             return jsonNode.get("id").asText();
-        } catch (IOException | ParseException ignored) {
+        } catch (IOException | ParseException e) {
             return null;
         }
     }

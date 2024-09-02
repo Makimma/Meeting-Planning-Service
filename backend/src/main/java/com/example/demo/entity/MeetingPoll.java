@@ -48,6 +48,9 @@ public class MeetingPoll {
     @JoinColumn(name = "location_id")
     private Location location;
 
+    @Size(max = 255, message = "Address must not exceed 255 characters")
+    private String address;
+
     @OneToMany(mappedBy = "meetingPoll", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<MeetingPollTimeSlot> meetingPollTimeSlots;
 

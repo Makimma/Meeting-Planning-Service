@@ -44,7 +44,11 @@ public class Meeting {
     @JoinColumn(name = "location_id", nullable = false)
     private Location location;
 
-    //TODO Добавить ссылку на ивент
+    @Size(max = 255, message = "Address must not exceed 255 characters")
+    private String physicalAddress;
+
+    @Size(max = 500, message = "Conference link must not exceed 500 characters")
+    private String conferenceLink;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "calendar_id")

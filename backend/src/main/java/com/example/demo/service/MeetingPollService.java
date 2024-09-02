@@ -14,17 +14,23 @@ import java.util.List;
 @Service
 public interface MeetingPollService {
     MeetingPoll findById(Long id);
-    MeetingPollResponse createMeetingPoll(String title, String description, int duration, Long locationId, List<TimeSlotRequest> timeSlotRequests);
+
+    MeetingPollResponse createMeetingPoll(String title, String description, int duration, Long locationId, List<TimeSlotRequest> timeSlotRequests, String address);
+
     MeetingPollResponse getMeetingPollInfo(Long meetingPollId);
+
     MeetingPollResponse getMeetingPollByUserLinkAndId(String userLink, Long meetingPollId);
+
     //TODO изменить опрос
 
     MeetingResponse createMeetingFromPoll(Long meetingPollId, Long timeSlotId);
 
     List<MeetingPollResponse> getMeetingPollsByUser();
+
     List<VoteCountResponse> getVoteCountsForMeetingPoll(Long meetingPollId);
 
     void vote(String userLink, Long meetingPollId, VoteRequest voteRequest);
+
     void deleteMeetingPoll(Long meetingPollId);
 
 }

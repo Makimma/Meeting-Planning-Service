@@ -17,6 +17,11 @@ public class MeetingResponse {
     @JsonProperty("location_id")
     private Long locationId;
 
+    private String address;
+
+    @JsonProperty("physical_address")
+    private String physicalAddress;
+
     @JsonProperty("begin_at")
     private ZonedDateTime beginAt;
 
