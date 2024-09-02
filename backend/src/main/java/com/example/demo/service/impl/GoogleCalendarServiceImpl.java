@@ -49,7 +49,7 @@ public class GoogleCalendarServiceImpl implements GoogleCalendarService {
 
         // Запрос
         String calendarId = "primary";
-        String url = String.format("https://www.googleapis.com/calendar/v3/calendars/%s/events?sendUpdates=all", calendarId);
+        String url = String.format("https://www.googleapis.com/calendar/v3/calendars/%s/events?sendUpdates=all&conferenceDataVersion=1", calendarId);
 
         HttpPost post = new HttpPost(url);
         post.setHeader("Authorization", "Bearer " + accessToken);
@@ -72,6 +72,13 @@ public class GoogleCalendarServiceImpl implements GoogleCalendarService {
             ObjectNode attendee = attendees.addObject();
             attendee.put("email", email);
         }
+
+        // Добавление Google Meet конференции
+        ObjectNode conferenceData = event.putObject("conferenceData");
+        ObjectNode createRequest = conferenceData.putObject("createRequest");
+        ObjectNode conferenceSolutionKey = createRequest.putObject("conferenceSolutionKey");
+        conferenceSolutionKey.put("type", "hangoutsMeet");  // Указываем тип конференции Google Meet
+        createRequest.put("requestId", java.util.UUID.randomUUID().toString());  // Уникальный идентификатор запроса
 
         StringEntity entity = new StringEntity(event.toString());
         post.setEntity(entity);
