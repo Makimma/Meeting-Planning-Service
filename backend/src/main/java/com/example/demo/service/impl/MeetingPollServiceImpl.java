@@ -157,8 +157,6 @@ public class MeetingPollServiceImpl implements MeetingPollService {
         participant.setParticipantEmail(voteRequest.getParticipantEmail());
         participant.setSelectedTimeSlots(selectedSlots);
         meetingPollParticipantRepository.save(participant);
-
-        //TODO на почту отправить что проголосовал
     }
 
     @Override

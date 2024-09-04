@@ -8,4 +8,5 @@ import java.util.List;
 public interface LocationService {
     List<LocationResponse> getAllLocations();
     Location findById(Long locationId);
+    List<Location> findAllByLocationId(List<Long> locationIds);
 }

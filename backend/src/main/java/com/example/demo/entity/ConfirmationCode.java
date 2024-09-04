@@ -15,6 +15,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Table(name = "confirmation_code")
 public class ConfirmationCode {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

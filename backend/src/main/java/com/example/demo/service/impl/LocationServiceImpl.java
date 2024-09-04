@@ -30,4 +30,9 @@ public class LocationServiceImpl implements LocationService {
         return locationRepository.findById(locationId)
                 .orElseThrow(() -> new LocationNotFoundException("Location not found"));
     }
+
+    @Override
+    public List<Location> findAllByLocationId(List<Long> locationIds) {
+        return locationRepository.findAllById(locationIds);
+    }
 }
