@@ -12,9 +12,9 @@ public interface AvailableSlotService {
 
     void createNewSlotsForMeetingType(MeetingType meetingType);
 
-    void createSlotIfNotExists(MeetingType meetingType, ZonedDateTime startDateTime, ZonedDateTime endDateTime);
-
     void createAvailableSlots(MeetingType meetingType);
 
     List<AvailableSlotResponse> getAvailableSlotsResponse(Long meetingTypeId);
+
+    void bookAvailableSlot(String userLink, Long slotId, String name, String email);
 }

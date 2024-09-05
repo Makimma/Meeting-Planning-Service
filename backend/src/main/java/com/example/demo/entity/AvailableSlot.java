@@ -22,4 +22,8 @@ public class AvailableSlot {
     private ZonedDateTime endDateTime;
 
     private boolean reserved;
+
+    private String name;
+
+    private String email;
 }

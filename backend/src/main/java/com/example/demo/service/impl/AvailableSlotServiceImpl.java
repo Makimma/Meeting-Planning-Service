@@ -3,6 +3,7 @@ package com.example.demo.service.impl;
 import com.example.demo.entity.AvailableSlot;
 import com.example.demo.entity.MeetingType;
 import com.example.demo.entity.MeetingTypeTimeRange;
+import com.example.demo.exception.AvailableSlotNotFoundException;
 import com.example.demo.exception.MeetingTypeNotFoundException;
 import com.example.demo.repository.AvailableSlotRepository;
 import com.example.demo.repository.MeetingTypeTimeRangeRepository;
@@ -89,7 +90,23 @@ public class AvailableSlotServiceImpl implements AvailableSlotService {
         }
     }
 
+    //TODO если встречу вырубить, то слоты нельзя бронировать
     @Override
+    @Transactional
+    public void bookAvailableSlot(String userLink, Long slotId, String name, String email) {
+        AvailableSlot slot = availableSlotRepository.findById(slotId)
+                .orElseThrow(() -> new AvailableSlotNotFoundException("Available slot not found"));
+
+        if (slot.isReserved() || !slot.getMeetingType().getUser().getLink().equals(userLink)) {
+            throw new AvailableSlotNotFoundException("Available slot not found");
+        }
+
+        slot.setReserved(true);
+        slot.setName(name);
+        slot.setEmail(email);
+        availableSlotRepository.save(slot);
+    }
+
     @Transactional
     public void createSlotIfNotExists(MeetingType meetingType, ZonedDateTime startDateTime, ZonedDateTime endDateTime) {
         boolean slotExists = availableSlotRepository.existsByMeetingTypeAndStartDateTime(meetingType, startDateTime);
