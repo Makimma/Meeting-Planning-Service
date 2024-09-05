@@ -11,6 +11,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 @Controller
 @RequestMapping("/api/v1/google-calendar")
@@ -45,9 +47,12 @@ public class GoogleOAuthController {
     }
 
     @DeleteMapping("/disconnect")
-    public ResponseEntity<String> disconnectCalendar() {
+    public ResponseEntity<Map<String, String>> disconnectCalendar() {
         calendarTokenService.disconnectFromGoogleCalendar();
-        //TODO спросить возвращать ключ значение или как сейчас реализовано
-        return ResponseEntity.ok("Disconnected from Google Calendar");
+
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "Disconnected from Google Calendar");
+
+        return ResponseEntity.ok(response);
     }
 }
