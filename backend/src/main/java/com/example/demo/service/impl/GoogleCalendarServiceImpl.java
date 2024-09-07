@@ -13,6 +13,7 @@ import org.apache.hc.client5.http.classic.methods.HttpPost;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
+import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.ParseException;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.io.entity.StringEntity;
@@ -20,6 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 
@@ -54,7 +56,7 @@ public class GoogleCalendarServiceImpl implements GoogleCalendarService {
 
         HttpPost post = new HttpPost(url);
         post.setHeader("Authorization", "Bearer " + accessToken);
-        post.setHeader("Content-Type", "application/json");
+        post.setHeader("Content-Type", "application/json; charset=UTF-8");
 
         // Тело запроса
         DateTimeFormatter formatter = DateTimeFormatter.ISO_OFFSET_DATE_TIME;
@@ -87,7 +89,7 @@ public class GoogleCalendarServiceImpl implements GoogleCalendarService {
             // TODO: добавить логику для интеграции с Zoom API
         }*/
 
-        StringEntity entity = new StringEntity(event.toString());
+        StringEntity entity = new StringEntity(event.toString(), StandardCharsets.UTF_8);
         post.setEntity(entity);
 
         try (CloseableHttpClient client = HttpClients.createDefault();
