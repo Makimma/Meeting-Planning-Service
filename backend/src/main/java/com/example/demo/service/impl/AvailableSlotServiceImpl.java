@@ -143,6 +143,16 @@ public class AvailableSlotServiceImpl implements AvailableSlotService {
         createMeeting(slot, meetingType.getTitle(), meetingType.getDescription(), name, email, location);
     }
 
+    @Override
+    public List<AvailableSlotResponse> getAvailableSlotsResponseUnauthenticated(String userLink, Long meetingTypeId) {
+        MeetingType meetingType = meetingTypeService.getMeetingTypeByIdUnauthenticated(meetingTypeId);
+        if (!meetingType.getUser().getLink().equals(userLink)) {
+            throw new MeetingTypeNotFoundException("Meeting Type not found");
+        }
+        return availableSlotRepository.findByMeetingTypeIdAndStartDateTimeAfterAndReservedFalse(meetingTypeId, ZonedDateTime.now())
+                .stream().map(this::toAvailableSlotResponse).toList();
+    }
+
     @Transactional
     public void createMeeting(AvailableSlot slot, String title, String description, String name, String email, MeetingTypeLocation location) {
         Meeting meeting = Meeting.builder()

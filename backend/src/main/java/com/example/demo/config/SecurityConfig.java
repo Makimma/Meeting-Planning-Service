@@ -43,7 +43,9 @@ public class SecurityConfig {
                     request.requestMatchers(
                             "/api/v*/registration/**",
                             "/api/v*/auth/**",
-                            "/api/v*/meeting-polls/{userLink}/{meetingPollId}/vote"
+                            "/api/v*/meeting-polls/{userLink}/{meetingPollId}/vote",
+                            "/api/v*/meeting-types/{userLink}/{meetingTypeId}/slots/{slotId}/book",
+                            "/api/v*/meeting-types/{userLink}/{id}/available-slots"
                     ).permitAll();
                     request.requestMatchers("/actuator/**").hasRole("ADMIN");
                     request.anyRequest().authenticated();

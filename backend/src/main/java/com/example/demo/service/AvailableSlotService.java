@@ -1,10 +1,8 @@
 package com.example.demo.service;
 
-import com.example.demo.entity.AvailableSlot;
 import com.example.demo.entity.MeetingType;
 import com.example.demo.response.AvailableSlotResponse;
 
-import java.time.ZonedDateTime;
 import java.util.List;
 
 public interface AvailableSlotService {
@@ -17,4 +15,6 @@ public interface AvailableSlotService {
     List<AvailableSlotResponse> getAvailableSlotsResponse(Long meetingTypeId);
 
     void bookAvailableSlot(String userLink, Long meetingTypeId, Long availableSlotId, String name, String email, Long locationId);
+
+    List<AvailableSlotResponse> getAvailableSlotsResponseUnauthenticated(String userLink, Long id);
 }

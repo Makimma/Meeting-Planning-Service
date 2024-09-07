@@ -16,4 +16,6 @@ public interface MeetingTypeService {
     MeetingTypeResponse getMeetingTypeResponseById(Long meetingTypeId);
 
     MeetingType getMeetingTypeById(Long meetingTypeId);
+
+    MeetingType getMeetingTypeByIdUnauthenticated(Long meetingTypeId);
 }

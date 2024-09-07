@@ -1,6 +1,5 @@
 package com.example.demo.controller;
 
-import com.example.demo.request.BookingRequest;
 import com.example.demo.request.MeetingTypeRequest;
 import com.example.demo.response.AvailableSlotResponse;
 import com.example.demo.response.MeetingTypeResponse;
@@ -16,7 +15,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/meeting-types")
+@RequestMapping("/api/v1/meeting-types")
 public class MeetingTypeController {
     private final MeetingTypeService meetingTypeService;
     private final AvailableSlotService availableSlotService;
@@ -39,13 +38,19 @@ public class MeetingTypeController {
     }
 
     @GetMapping
-    public ResponseEntity<List<MeetingTypeResponse>> getAllMeetingTypes() {
+    public ResponseEntity<List<MeetingTypeResponse>> getAllMyMeetingTypes() {
         return ResponseEntity.ok(meetingTypeService.getAllMeetingTypesResponsesForCurrentUser());
     }
 
     @GetMapping("/{id}/available-slots")
     public ResponseEntity<List<AvailableSlotResponse>> getAvailableSlotsForMeetingType(@PathVariable Long id) {
         List<AvailableSlotResponse> availableSlots = availableSlotService.getAvailableSlotsResponse(id);
+        return ResponseEntity.ok(availableSlots);
+    }
+
+    @GetMapping("/{userLink}/{id}/available-slots")
+    public ResponseEntity<List<AvailableSlotResponse>> getAvailableSlotsForMeetingTypeUnauthenticated(@PathVariable String userLink, @PathVariable Long id) {
+        List<AvailableSlotResponse> availableSlots = availableSlotService.getAvailableSlotsResponseUnauthenticated(userLink, id);
         return ResponseEntity.ok(availableSlots);
     }
 

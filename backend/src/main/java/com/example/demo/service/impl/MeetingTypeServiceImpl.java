@@ -100,6 +100,12 @@ public class MeetingTypeServiceImpl implements MeetingTypeService {
     }
 
     @Override
+    public MeetingType getMeetingTypeByIdUnauthenticated(Long meetingTypeId) {
+        return meetingTypeRepository.findById(meetingTypeId)
+                .orElseThrow(() -> new MeetingTypeNotFoundException("Meeting Type Not Found"));
+    }
+
+    @Override
     public List<MeetingType> getAllMeetingTypes() {
         return meetingTypeRepository.findAllByUser(userService.findByEmail(AuthUtils.getCurrentUserEmail()));
     }
