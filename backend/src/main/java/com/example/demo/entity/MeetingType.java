@@ -30,12 +30,9 @@ public class MeetingType {
     @NotNull
     private int durationMinutes;
 
-    @ManyToMany
-    @JoinTable(
-            name = "meeting_type_locations",
-            joinColumns = @JoinColumn(name = "meeting_type_id"),
-            inverseJoinColumns = @JoinColumn(name = "location_id"))
-    private List<Location> locations;
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "meeting_type_id")
+    private List<MeetingTypeLocation> locations;
 
     @OneToMany(mappedBy = "meetingType", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<MeetingTypeTimeRange> timeRanges;

@@ -1,6 +1,7 @@
 package com.example.demo.service.impl;
 
 import com.example.demo.entity.AvailableSlot;
+import com.example.demo.entity.Location;
 import com.example.demo.entity.MeetingType;
 import com.example.demo.entity.MeetingTypeTimeRange;
 import com.example.demo.exception.AvailableSlotNotFoundException;
@@ -9,6 +10,7 @@ import com.example.demo.repository.AvailableSlotRepository;
 import com.example.demo.repository.MeetingTypeTimeRangeRepository;
 import com.example.demo.response.AvailableSlotResponse;
 import com.example.demo.service.AvailableSlotService;
+import com.example.demo.service.LocationService;
 import com.example.demo.service.MeetingTypeService;
 import com.example.demo.util.AuthUtils;
 import jakarta.transaction.Transactional;
@@ -26,14 +28,17 @@ public class AvailableSlotServiceImpl implements AvailableSlotService {
     private final AvailableSlotRepository availableSlotRepository;
     private final MeetingTypeTimeRangeRepository meetingTypeTimeRangeRepository;
     private final MeetingTypeService meetingTypeService;
+    private final LocationService locationService;
 
     @Autowired
     public AvailableSlotServiceImpl(AvailableSlotRepository availableSlotRepository,
                                     MeetingTypeTimeRangeRepository meetingTypeTimeRangeRepository,
-                                    @Lazy MeetingTypeService meetingTypeService) {
+                                    @Lazy MeetingTypeService meetingTypeService,
+                                    LocationService locationService) {
         this.availableSlotRepository = availableSlotRepository;
         this.meetingTypeTimeRangeRepository = meetingTypeTimeRangeRepository;
         this.meetingTypeService = meetingTypeService;
+        this.locationService = locationService;
     }
 
     @Scheduled(cron = "0 0 2 * * ?")
@@ -93,13 +98,15 @@ public class AvailableSlotServiceImpl implements AvailableSlotService {
     //TODO если встречу вырубить, то слоты нельзя бронировать
     @Override
     @Transactional
-    public void bookAvailableSlot(String userLink, Long slotId, String name, String email) {
+    public void bookAvailableSlot(String userLink, Long slotId, Long locationId, String name, String email) {
         AvailableSlot slot = availableSlotRepository.findById(slotId)
                 .orElseThrow(() -> new AvailableSlotNotFoundException("Available slot not found"));
 
         if (slot.isReserved() || !slot.getMeetingType().getUser().getLink().equals(userLink)) {
             throw new AvailableSlotNotFoundException("Available slot not found");
         }
+
+        Location location = locationService.findById(locationId);
 
         slot.setReserved(true);
         slot.setName(name);

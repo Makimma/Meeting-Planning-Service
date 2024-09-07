@@ -16,5 +16,5 @@ public interface AvailableSlotService {
 
     List<AvailableSlotResponse> getAvailableSlotsResponse(Long meetingTypeId);
 
-    void bookAvailableSlot(String userLink, Long slotId, String name, String email);
+    void bookAvailableSlot(String userLink, Long slotId, Long locationId, String name, String email);
 }

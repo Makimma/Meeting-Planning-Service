@@ -1,5 +1,6 @@
 package com.example.demo.request;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
@@ -10,4 +11,8 @@ public class BookingRequest {
 
     @NotBlank
     private String email;
+
+    @NotBlank
+    @JsonProperty("location_id")
+    private Long locationId;
 }

@@ -23,7 +23,8 @@ public class MeetingTypeRequest {
     @NotNull(message = "Максимальное количество дней для записи должно быть указано")
     private Integer maxDaysInAdvance;
 
-    private List<Long> locationIds;
+    @NotNull
+    private List<@Valid LocationRequest> locations;
 
     private List<@Valid MeetingTypeTimeRangeRequest> timeRanges;
 }

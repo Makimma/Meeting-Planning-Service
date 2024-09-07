@@ -1,15 +1,12 @@
 package com.example.demo.service.impl;
 
-import com.example.demo.entity.Location;
-import com.example.demo.entity.MeetingType;
-import com.example.demo.entity.MeetingTypeTimeRange;
-import com.example.demo.entity.User;
+import com.example.demo.entity.*;
 import com.example.demo.exception.InvalidTimeRangeException;
 import com.example.demo.exception.MeetingTypeNotFoundException;
+import com.example.demo.repository.MeetingTypeLocationRepository;
 import com.example.demo.repository.MeetingTypeRepository;
 import com.example.demo.request.MeetingTypeRequest;
 import com.example.demo.request.MeetingTypeTimeRangeRequest;
-import com.example.demo.response.LocationResponse;
 import com.example.demo.response.MeetingTypeResponse;
 import com.example.demo.response.MeetingTypeTimeRangeResponse;
 import com.example.demo.service.AvailableSlotService;
@@ -32,31 +29,40 @@ public class MeetingTypeServiceImpl implements MeetingTypeService {
     private final UserService userService;
     private final LocationService locationService;
     private final AvailableSlotService availableSlotService;
+    private final MeetingTypeLocationRepository meetingTypeLocationRepository;
 
     public MeetingTypeServiceImpl(MeetingTypeRepository meetingTypeRepository,
                                   UserService userService,
                                   LocationService locationService,
-                                  AvailableSlotService availableSlotService) {
+                                  AvailableSlotService availableSlotService, MeetingTypeLocationRepository meetingTypeLocationRepository) {
         this.meetingTypeRepository = meetingTypeRepository;
         this.userService = userService;
         this.locationService = locationService;
         this.availableSlotService = availableSlotService;
+        this.meetingTypeLocationRepository = meetingTypeLocationRepository;
     }
 
     @Override
     @Transactional
     public MeetingTypeResponse createMeetingType(MeetingTypeRequest request) {
-        User currentUser = userService.findByEmail(AuthUtils.getCurrentUserEmail());MeetingType meetingType = new MeetingType();
+        User currentUser = userService.findByEmail(AuthUtils.getCurrentUserEmail());
 
         validateTimeRanges(request.getTimeRanges());
 
+        MeetingType meetingType = new MeetingType();
         meetingType.setTitle(request.getTitle());
         meetingType.setDescription(request.getDescription());
         meetingType.setDurationMinutes(request.getDuration());
         meetingType.setMaxDaysInAdvance(request.getMaxDaysInAdvance());
         meetingType.setUser(currentUser);
 
-        List<Location> locations = locationService.findAllByLocationId(request.getLocationIds());
+        List<MeetingTypeLocation> locations = request.getLocations().stream().map(locationRequest -> {
+            MeetingTypeLocation meetingTypeLocation = new MeetingTypeLocation();
+            meetingTypeLocation.setLocation(locationService.findById(locationRequest.getId()));
+            meetingTypeLocation.setAddress(locationRequest.getAddress());
+            return meetingTypeLocationRepository.save(meetingTypeLocation);
+        }).toList();
+
         meetingType.setLocations(locations);
         meetingType = meetingTypeRepository.save(meetingType);
 
@@ -74,7 +80,7 @@ public class MeetingTypeServiceImpl implements MeetingTypeService {
 
         availableSlotService.createAvailableSlots(meetingType);
 
-        return toMeetingTypeResponse(meetingTypeRepository.save(meetingType));
+        return toMeetingTypeResponse(meetingType);
     }
 
     @Override
@@ -113,16 +119,7 @@ public class MeetingTypeServiceImpl implements MeetingTypeService {
         response.setDescription(meetingType.getDescription());
         response.setDuration(meetingType.getDurationMinutes());
         response.setMaxDaysInAdvance(meetingType.getMaxDaysInAdvance());
-
-        List<LocationResponse> locationResponses = meetingType.getLocations().stream()
-                .map(location -> {
-                    LocationResponse locationResponse = new LocationResponse();
-                    locationResponse.setId(location.getId());
-                    locationResponse.setName(location.getName());
-                    return locationResponse;
-                }).collect(Collectors.toList());
-        response.setLocations(locationResponses);
-
+        response.setLocations(meetingType.getLocations());
         List<MeetingTypeTimeRangeResponse> timeRangeResponses = meetingType.getTimeRanges().stream()
                 .map(timeRange -> {
                     MeetingTypeTimeRangeResponse rangeResponse = new MeetingTypeTimeRangeResponse();
