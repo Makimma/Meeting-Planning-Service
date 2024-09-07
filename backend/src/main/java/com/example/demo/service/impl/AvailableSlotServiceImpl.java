@@ -1,12 +1,11 @@
 package com.example.demo.service.impl;
 
-import com.example.demo.entity.AvailableSlot;
-import com.example.demo.entity.Location;
-import com.example.demo.entity.MeetingType;
-import com.example.demo.entity.MeetingTypeTimeRange;
+import com.example.demo.entity.*;
 import com.example.demo.exception.AvailableSlotNotFoundException;
+import com.example.demo.exception.LocationNotFoundException;
 import com.example.demo.exception.MeetingTypeNotFoundException;
 import com.example.demo.repository.AvailableSlotRepository;
+import com.example.demo.repository.MeetingTypeLocationRepository;
 import com.example.demo.repository.MeetingTypeTimeRangeRepository;
 import com.example.demo.response.AvailableSlotResponse;
 import com.example.demo.service.AvailableSlotService;
@@ -29,16 +28,18 @@ public class AvailableSlotServiceImpl implements AvailableSlotService {
     private final MeetingTypeTimeRangeRepository meetingTypeTimeRangeRepository;
     private final MeetingTypeService meetingTypeService;
     private final LocationService locationService;
+    private final MeetingTypeLocationRepository meetingTypeLocationRepository;
 
     @Autowired
     public AvailableSlotServiceImpl(AvailableSlotRepository availableSlotRepository,
                                     MeetingTypeTimeRangeRepository meetingTypeTimeRangeRepository,
                                     @Lazy MeetingTypeService meetingTypeService,
-                                    LocationService locationService) {
+                                    LocationService locationService, MeetingTypeLocationRepository meetingTypeLocationRepository) {
         this.availableSlotRepository = availableSlotRepository;
         this.meetingTypeTimeRangeRepository = meetingTypeTimeRangeRepository;
         this.meetingTypeService = meetingTypeService;
         this.locationService = locationService;
+        this.meetingTypeLocationRepository = meetingTypeLocationRepository;
     }
 
     @Scheduled(cron = "0 0 2 * * ?")
@@ -98,20 +99,39 @@ public class AvailableSlotServiceImpl implements AvailableSlotService {
     //TODO если встречу вырубить, то слоты нельзя бронировать
     @Override
     @Transactional
-    public void bookAvailableSlot(String userLink, Long slotId, Long locationId, String name, String email) {
-        AvailableSlot slot = availableSlotRepository.findById(slotId)
-                .orElseThrow(() -> new AvailableSlotNotFoundException("Available slot not found"));
+    public void bookAvailableSlot(String userLink,
+                                  Long meetingTypeId,
+                                  Long slotId,
+                                  String name,
+                                  String email,
+                                  Long locationId) {
+        MeetingType meetingType = meetingTypeService.getMeetingTypeById(meetingTypeId);
 
-        if (slot.isReserved() || !slot.getMeetingType().getUser().getLink().equals(userLink)) {
-            throw new AvailableSlotNotFoundException("Available slot not found");
+        if (!meetingType.getUser().getLink().equals(userLink)) {
+            throw new IllegalArgumentException("Переданный линк не принадлежит владельцу типа встречи.");
         }
 
-        Location location = locationService.findById(locationId);
+        AvailableSlot slot = availableSlotRepository.findById(slotId)
+                .orElseThrow(() -> new AvailableSlotNotFoundException("Slot not found"));
 
-        slot.setReserved(true);
+        //TODO
+        if (slot.isReserved()) {
+            throw new IllegalArgumentException("Слот уже зарезервирован.");
+        }
+
+        MeetingTypeLocation location = meetingTypeLocationRepository.findById(locationId)
+                .orElseThrow(() -> new LocationNotFoundException("Location not found"));
+
+        if (!meetingType.getLocations().contains(location)) {
+            throw new LocationNotFoundException("Location not found");
+        }
+
         slot.setName(name);
         slot.setEmail(email);
+        slot.setReserved(true);
         availableSlotRepository.save(slot);
+
+        //TODO createMeeting(slot, name, email, location);
     }
 
     @Transactional

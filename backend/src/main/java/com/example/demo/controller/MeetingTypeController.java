@@ -49,13 +49,19 @@ public class MeetingTypeController {
         return ResponseEntity.ok(availableSlots);
     }
 
-//    @PostMapping("/{userLink}/slots/{slotId}/book")
-//    public ResponseEntity<Map<String, String>> bookSlot(@PathVariable String userLink, @PathVariable Long slotId, @RequestBody @Valid BookingRequest bookingRequest) {
-//        availableSlotService.bookAvailableSlot(userLink, slotId, bookingRequest.getName(), bookingRequest.getEmail());
-//
-//        Map<String, String> response = new HashMap<>();
-//        response.put("message", "Slot successfully booked");
-//
-//        return ResponseEntity.ok(response);
-//    }
+    @PostMapping("/{userLink}/{meetingTypeId}/slots/{slotId}/book")
+    public ResponseEntity<Map<String, String>> bookSlot(
+            @PathVariable String userLink,
+            @PathVariable Long meetingTypeId,
+            @PathVariable Long slotId,
+            @RequestParam String name,
+            @RequestParam String email,
+            @RequestParam Long locationId) {
+        availableSlotService.bookAvailableSlot(userLink, meetingTypeId, slotId, name, email, locationId);
+
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "Slot successfully booked");
+
+        return ResponseEntity.ok(response);
+    }
 }
