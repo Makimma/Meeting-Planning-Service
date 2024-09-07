@@ -4,13 +4,9 @@ import com.example.demo.entity.*;
 import com.example.demo.exception.AvailableSlotNotFoundException;
 import com.example.demo.exception.LocationNotFoundException;
 import com.example.demo.exception.MeetingTypeNotFoundException;
-import com.example.demo.repository.AvailableSlotRepository;
-import com.example.demo.repository.MeetingTypeLocationRepository;
-import com.example.demo.repository.MeetingTypeTimeRangeRepository;
+import com.example.demo.repository.*;
 import com.example.demo.response.AvailableSlotResponse;
-import com.example.demo.service.AvailableSlotService;
-import com.example.demo.service.LocationService;
-import com.example.demo.service.MeetingTypeService;
+import com.example.demo.service.*;
 import com.example.demo.util.AuthUtils;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,19 +23,32 @@ public class AvailableSlotServiceImpl implements AvailableSlotService {
     private final AvailableSlotRepository availableSlotRepository;
     private final MeetingTypeTimeRangeRepository meetingTypeTimeRangeRepository;
     private final MeetingTypeService meetingTypeService;
-    private final LocationService locationService;
     private final MeetingTypeLocationRepository meetingTypeLocationRepository;
+    private final MeetingRepository meetingRepository;
+    private final MeetingParticipantRepository meetingParticipantRepository;
+    private final ConnectedCalendarRepository connectedCalendarRepository;
+    private final GoogleCalendarService googleCalendarService;
+    private final CalendarService calendarService;
 
     @Autowired
     public AvailableSlotServiceImpl(AvailableSlotRepository availableSlotRepository,
                                     MeetingTypeTimeRangeRepository meetingTypeTimeRangeRepository,
                                     @Lazy MeetingTypeService meetingTypeService,
-                                    LocationService locationService, MeetingTypeLocationRepository meetingTypeLocationRepository) {
+                                    MeetingTypeLocationRepository meetingTypeLocationRepository,
+                                    MeetingRepository meetingRepository,
+                                    MeetingParticipantRepository meetingParticipantRepository,
+                                    ConnectedCalendarRepository connectedCalendarRepository,
+                                    GoogleCalendarService googleCalendarService,
+                                    CalendarService calendarService) {
         this.availableSlotRepository = availableSlotRepository;
         this.meetingTypeTimeRangeRepository = meetingTypeTimeRangeRepository;
         this.meetingTypeService = meetingTypeService;
-        this.locationService = locationService;
         this.meetingTypeLocationRepository = meetingTypeLocationRepository;
+        this.meetingRepository = meetingRepository;
+        this.meetingParticipantRepository = meetingParticipantRepository;
+        this.connectedCalendarRepository = connectedCalendarRepository;
+        this.googleCalendarService = googleCalendarService;
+        this.calendarService = calendarService;
     }
 
     @Scheduled(cron = "0 0 2 * * ?")
@@ -131,7 +140,42 @@ public class AvailableSlotServiceImpl implements AvailableSlotService {
         slot.setReserved(true);
         availableSlotRepository.save(slot);
 
-        //TODO createMeeting(slot, name, email, location);
+        createMeeting(slot, meetingType.getTitle(), meetingType.getDescription(), name, email, location);
+    }
+
+    @Transactional
+    public void createMeeting(AvailableSlot slot, String title, String description, String name, String email, MeetingTypeLocation location) {
+        Meeting meeting = Meeting.builder()
+                .user(slot.getMeetingType().getUser())
+                .title(title)
+                .description(description)
+                .beginAt(slot.getStartDateTime())
+                .endAt(slot.getEndDateTime())
+                .location(location.getLocation())
+                .build();
+
+        if (location.getLocation().getName().equals("In-Person")) {
+            meeting.setPhysicalAddress(location.getAddress());
+        }
+
+        meeting = meetingRepository.save(meeting);
+
+        MeetingParticipant participant = new MeetingParticipant();
+        participant.setMeeting(meeting);
+        participant.setParticipantName(name);
+        participant.setParticipantEmail(email);
+        participant = meetingParticipantRepository.save(participant);
+
+        meeting.setParticipants(List.of(participant));
+
+        Calendar calendar = calendarService.findByName("Google");
+        if (connectedCalendarRepository.existsByUserAndCalendar(meeting.getUser(), calendar)) {
+            meeting.setCalendar(calendar);
+            String eventId = googleCalendarService.createEvent(meeting.getUser(), meeting);
+            if (eventId != null) {
+                meeting.setEventId(eventId);
+            }
+        }
     }
 
     @Transactional
