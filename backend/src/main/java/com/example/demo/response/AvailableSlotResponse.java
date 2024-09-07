@@ -7,6 +7,8 @@ import java.time.ZonedDateTime;
 
 @Data
 public class AvailableSlotResponse {
+    private Long id;
+
     @JsonProperty("start_time")
     private ZonedDateTime startTime;
 

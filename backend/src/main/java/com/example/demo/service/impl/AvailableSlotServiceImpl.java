@@ -142,6 +142,7 @@ public class AvailableSlotServiceImpl implements AvailableSlotService {
 
     private AvailableSlotResponse toAvailableSlotResponse(AvailableSlot slot) {
         AvailableSlotResponse response = new AvailableSlotResponse();
+        response.setId(slot.getId());
         response.setStartTime(slot.getStartDateTime());
         response.setEndTime(slot.getEndDateTime());
         return response;
