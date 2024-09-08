@@ -175,9 +175,10 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, String>> handleException(Exception ex) {
-        //FIXME не выводи все подряд
+        //TODO разкоммитить
         Map<String, String> errors = new HashMap<>();
         errors.put("error", ex.getMessage());
+//        errors.put("error", "Something went wrong");
         return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
     }
 }

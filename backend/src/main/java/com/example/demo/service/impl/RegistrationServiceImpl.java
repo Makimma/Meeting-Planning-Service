@@ -77,7 +77,7 @@ public class RegistrationServiceImpl implements RegistrationService {
             throw new CodeNotExpiredException("Token already exist");
         }
 
-        emailSenderService.sendEmail(email, "Почтится", generateCode(user));
+        emailSenderService.sendRegistrationEmail(email, generateCode(user));
         return RegistrationResponse.builder().timestamp(ZonedDateTime.now()).build();
     }
 
@@ -107,7 +107,7 @@ public class RegistrationServiceImpl implements RegistrationService {
             throw new CodeExpiredException("Cannot send confirmation code");
         }
 
-        emailSenderService.sendEmail(email, "Почтится", generateCode(user));
+        emailSenderService.sendRegistrationEmail(email, generateCode(user));
         return SendConfirmationResponse.builder().timestamp(ZonedDateTime.now()).build();
     }
 
@@ -126,8 +126,7 @@ public class RegistrationServiceImpl implements RegistrationService {
             throw new CodeExpiredException("Invalid token");
         }
 
-        //TODO Заменить subject письма и само тело почты
-        emailSenderService.sendEmail(email, "Почтится", generateCode(user));
+        emailSenderService.sendRegistrationEmail(email, generateCode(user));
         return ResendCodeResponse.builder().timestamp(ZonedDateTime.now()).build();
     }
 

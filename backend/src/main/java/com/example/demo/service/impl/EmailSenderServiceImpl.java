@@ -33,4 +33,14 @@ public class EmailSenderServiceImpl implements EmailSenderService {
         message.setFrom(email);
         mailSender.send(message);
     }
+
+    @Override
+    public void sendRegistrationEmail(String to, String code) {
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setTo(to);
+        message.setSubject("Подтверждение регистрации на сайте");
+        message.setText("Ваш код подтверждения: " + code);
+        message.setFrom(email);
+        mailSender.send(message);
+    }
 }
