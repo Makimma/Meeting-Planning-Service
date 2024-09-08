@@ -59,7 +59,7 @@ public class MeetingTypeServiceImpl implements MeetingTypeService {
         List<MeetingTypeLocation> locations = request.getLocations().stream().map(locationRequest -> {
             MeetingTypeLocation meetingTypeLocation = new MeetingTypeLocation();
             meetingTypeLocation.setLocation(locationService.findById(locationRequest.getId()));
-            meetingTypeLocation.setAddress(locationRequest.getAddress());
+            meetingTypeLocation.setAddress(locationService.findById(locationRequest.getId()).getName().equals("In-Person") ? locationRequest.getAddress() : "");
             return meetingTypeLocationRepository.save(meetingTypeLocation);
         }).toList();
 
