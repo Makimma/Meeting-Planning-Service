@@ -18,4 +18,6 @@ public interface MeetingTypeService {
     MeetingType getMeetingTypeById(Long meetingTypeId);
 
     MeetingType getMeetingTypeByIdUnauthenticated(Long meetingTypeId);
+
+    MeetingTypeResponse getMeetingTypeByUserLinkAndId(String userLink, Long meetingTypeId);
 }

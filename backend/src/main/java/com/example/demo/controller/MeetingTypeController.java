@@ -37,6 +37,15 @@ public class MeetingTypeController {
         return ResponseEntity.ok(meetingTypeService.getMeetingTypeResponseById(id));
     }
 
+    @GetMapping("/{userLink}/{meetingTypeId}")
+    public ResponseEntity<MeetingTypeResponse> getMeetingTypeByIdUnauthenticated(
+            @PathVariable String userLink,
+            @PathVariable Long meetingTypeId) {
+
+        MeetingTypeResponse meetingTypeResponse = meetingTypeService.getMeetingTypeByUserLinkAndId(userLink, meetingTypeId);
+        return ResponseEntity.ok(meetingTypeResponse);
+    }
+
     @GetMapping
     public ResponseEntity<List<MeetingTypeResponse>> getAllMyMeetingTypes() {
         return ResponseEntity.ok(meetingTypeService.getAllMeetingTypesResponsesForCurrentUser());
