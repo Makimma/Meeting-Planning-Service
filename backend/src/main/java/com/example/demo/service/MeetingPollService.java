@@ -1,6 +1,7 @@
 package com.example.demo.service;
 
 import com.example.demo.entity.MeetingPoll;
+import com.example.demo.request.MeetingPollUpdateRequest;
 import com.example.demo.response.MeetingResponse;
 import com.example.demo.response.VoteCountResponse;
 import com.example.demo.request.TimeSlotRequest;
@@ -21,8 +22,6 @@ public interface MeetingPollService {
 
     MeetingPollResponse getMeetingPollByUserLinkAndId(String userLink, Long meetingPollId);
 
-    //TODO изменить опрос
-
     MeetingResponse createMeetingFromPoll(Long meetingPollId, Long timeSlotId);
 
     List<MeetingPollResponse> getMeetingPollsByUser();
@@ -33,4 +32,5 @@ public interface MeetingPollService {
 
     void deleteMeetingPoll(Long meetingPollId);
 
+    MeetingPollResponse patchMeetingPoll(Long pollId, MeetingPollUpdateRequest updateRequest);
 }

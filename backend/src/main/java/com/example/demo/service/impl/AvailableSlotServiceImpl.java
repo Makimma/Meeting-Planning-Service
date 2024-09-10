@@ -1,9 +1,9 @@
 package com.example.demo.service.impl;
 
 import com.example.demo.entity.*;
-import com.example.demo.exception.AvailableSlotNotFoundException;
 import com.example.demo.exception.LocationNotFoundException;
 import com.example.demo.exception.MeetingTypeNotFoundException;
+import com.example.demo.exception.TimeSlotNotFoundException;
 import com.example.demo.repository.*;
 import com.example.demo.response.AvailableSlotResponse;
 import com.example.demo.service.*;
@@ -117,15 +117,14 @@ public class AvailableSlotServiceImpl implements AvailableSlotService {
         MeetingType meetingType = meetingTypeService.getMeetingTypeById(meetingTypeId);
 
         if (!meetingType.getUser().getLink().equals(userLink)) {
-            throw new IllegalArgumentException("Переданный линк не принадлежит владельцу типа встречи.");
+            throw new MeetingTypeNotFoundException("Meeting Type not found");
         }
 
         AvailableSlot slot = availableSlotRepository.findById(slotId)
-                .orElseThrow(() -> new AvailableSlotNotFoundException("Slot not found"));
+                .orElseThrow(() -> new TimeSlotNotFoundException("Time slot not found"));
 
-        //TODO
         if (slot.isReserved()) {
-            throw new IllegalArgumentException("Слот уже зарезервирован.");
+            throw new TimeSlotNotFoundException("Time slot not found");
         }
 
         MeetingTypeLocation location = meetingTypeLocationRepository.findById(locationId)

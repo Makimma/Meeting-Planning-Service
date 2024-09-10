@@ -1,5 +1,6 @@
 package com.example.demo.controller;
 
+import com.example.demo.request.MeetingPollUpdateRequest;
 import com.example.demo.response.MeetingResponse;
 import com.example.demo.response.VoteCountResponse;
 import com.example.demo.request.MeetingPollRequest;
@@ -84,5 +85,12 @@ public class MeetingPollController {
             @PathVariable Long meetingPollId,
             @RequestParam Long timeSlotId) {
         return ResponseEntity.ok(meetingPollService.createMeetingFromPoll(meetingPollId, timeSlotId));
+    }
+
+    @PatchMapping("/{pollId}")
+    public ResponseEntity<MeetingPollResponse> patchMeetingPoll(
+            @PathVariable Long pollId,
+            @RequestBody MeetingPollUpdateRequest updateRequest) {
+        return ResponseEntity.ok(meetingPollService.patchMeetingPoll(pollId, updateRequest));
     }
 }

@@ -3,6 +3,8 @@ package com.example.demo.service.impl;
 import com.example.demo.entity.*;
 import com.example.demo.exception.*;
 import com.example.demo.repository.*;
+import com.example.demo.request.MeetingPollTimeSlotUpdateRequest;
+import com.example.demo.request.MeetingPollUpdateRequest;
 import com.example.demo.response.*;
 import com.example.demo.request.TimeSlotRequest;
 import com.example.demo.request.VoteRequest;
@@ -110,10 +112,88 @@ public class MeetingPollServiceImpl implements MeetingPollService {
     @Transactional
     public void deleteMeetingPoll(Long meetingPollId) {
         if (!findById(meetingPollId).getUser().getId().equals(
-                        userService.findByEmail(AuthUtils.getCurrentUserEmail()).getId())) {
+                userService.findByEmail(AuthUtils.getCurrentUserEmail()).getId())) {
             throw new MeetingPollNotFoundException("MeetingPoll not found");
         }
         meetingPollRepository.deleteById(meetingPollId);
+    }
+
+    @Override
+    @Transactional
+    public MeetingPollResponse patchMeetingPoll(Long pollId, MeetingPollUpdateRequest updateRequest) {
+        MeetingPoll poll = findById(pollId);
+
+        if (!poll.getUser().getId().equals(userService.findByEmail(AuthUtils.getCurrentUserEmail()).getId())) {
+            throw new MeetingPollNotFoundException("MeetingPoll not found");
+        }
+
+        if (updateRequest.getTitle() != null) {
+            poll.setTitle(updateRequest.getTitle());
+        }
+
+        if (updateRequest.getDescription() != null) {
+            poll.setDescription(updateRequest.getDescription());
+        }
+
+        if (updateRequest.getLocation() != null) {
+            poll.setLocation(updateRequest.getLocation());
+        }
+
+        if (updateRequest.getAddress() != null) {
+            poll.setAddress(updateRequest.getAddress());
+        }
+
+        if (updateRequest.getTimeSlots() != null) {
+            updateTimeSlots(poll, updateRequest.getTimeSlots());
+        }
+
+        return toMeetingPollResponse(meetingPollRepository.save(poll));
+    }
+
+    private void updateTimeSlots(MeetingPoll poll, List<MeetingPollTimeSlotUpdateRequest> timeSlotUpdates) {
+        for (MeetingPollTimeSlotUpdateRequest slotUpdate : timeSlotUpdates) {
+            if (Boolean.TRUE.equals(slotUpdate.getDelete())) {
+                validateTimeSlotOwnership(poll, slotUpdate.getId());
+
+                removeTimeSlotFromPoll(poll, slotUpdate.getId());
+            } else if (slotUpdate.getId() == null) {
+                MeetingPollTimeSlot newSlot = new MeetingPollTimeSlot();
+                newSlot.setMeetingPoll(poll);
+                newSlot.setBeginAt(slotUpdate.getBeginAt());
+                newSlot.setEndAt(slotUpdate.getEndAt());
+                poll.getMeetingPollTimeSlots().add(meetingPollTimeSlotRepository.save(newSlot));
+            } else {
+                validateTimeSlotOwnership(poll, slotUpdate.getId());
+
+                MeetingPollTimeSlot existingSlot = meetingPollTimeSlotRepository.findById(slotUpdate.getId())
+                        .orElseThrow(() -> new TimeSlotNotFoundException("Time slot not found"));
+                existingSlot.setBeginAt(slotUpdate.getBeginAt());
+                existingSlot.setEndAt(slotUpdate.getEndAt());
+            }
+        }
+    }
+
+    private void validateTimeSlotOwnership(MeetingPoll poll, Long timeSlotId) {
+        MeetingPollTimeSlot timeSlot = meetingPollTimeSlotRepository.findById(timeSlotId)
+                .orElseThrow(() -> new TimeSlotNotFoundException("Time slot not found"));
+
+        if (!timeSlot.getMeetingPoll().getId().equals(poll.getId())) {
+            throw new TimeSlotNotFoundException("Time slot not found");
+        }
+    }
+
+    private void removeTimeSlotFromPoll(MeetingPoll poll, Long timeSlotId) {
+        MeetingPollTimeSlot timeSlot = meetingPollTimeSlotRepository.findById(timeSlotId)
+                .orElseThrow(() -> new TimeSlotNotFoundException("Time slot not found"));
+
+        poll.getMeetingPollTimeSlots().removeIf(slot -> slot.getId().equals(timeSlotId));
+
+        timeSlot.getParticipants()
+                .forEach(participant ->
+                        participant.getSelectedTimeSlots()
+                                .removeIf(slot -> slot.getId().equals(timeSlotId)));
+
+        meetingPollTimeSlotRepository.delete(timeSlot);
     }
 
     @Override
