@@ -8,12 +8,14 @@ import java.time.LocalTime;
 
 @Data
 public class MeetingTypeTimeRangeRequest {
-    @NotNull(message = "День недели не может быть пустым")
+    @NotNull(message = "Day of week can not be null")
     private DayOfWeek dayOfWeek;
 
-    @NotNull(message = "Время начала не может быть пустым")
+    @NotNull(message = "Start time can not be null")
     private LocalTime startTime;
 
-    @NotNull(message = "Время окончания не может быть пустым")
+    @NotNull(message = "End time can not be null")
     private LocalTime endTime;
+
+    private Boolean delete;
 }

@@ -1,6 +1,7 @@
 package com.example.demo.controller;
 
 import com.example.demo.request.MeetingTypeRequest;
+import com.example.demo.request.MeetingTypeUpdateRequest;
 import com.example.demo.response.AvailableSlotResponse;
 import com.example.demo.response.MeetingTypeResponse;
 import com.example.demo.service.AvailableSlotService;
@@ -77,5 +78,12 @@ public class MeetingTypeController {
         response.put("message", "Slot successfully booked");
 
         return ResponseEntity.ok(response);
+    }
+
+    @PatchMapping("/{meetingTypeId}")
+    public ResponseEntity<MeetingTypeResponse> patchMeetingType(
+            @PathVariable Long meetingTypeId,
+            @RequestBody @Valid MeetingTypeUpdateRequest updateRequest) {
+        return ResponseEntity.ok(meetingTypeService.patchMeetingType(meetingTypeId, updateRequest));
     }
 }

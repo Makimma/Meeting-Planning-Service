@@ -7,6 +7,7 @@ import com.example.demo.repository.MeetingTypeLocationRepository;
 import com.example.demo.repository.MeetingTypeRepository;
 import com.example.demo.request.MeetingTypeRequest;
 import com.example.demo.request.MeetingTypeTimeRangeRequest;
+import com.example.demo.request.MeetingTypeUpdateRequest;
 import com.example.demo.response.MeetingTypeResponse;
 import com.example.demo.response.MeetingTypeTimeRangeResponse;
 import com.example.demo.service.AvailableSlotService;
@@ -116,6 +117,90 @@ public class MeetingTypeServiceImpl implements MeetingTypeService {
 
         return toMeetingTypeResponse(meetingType);
     }
+
+    @Override
+    @Transactional
+    public MeetingTypeResponse patchMeetingType(Long meetingTypeId, MeetingTypeUpdateRequest updateRequest) {
+        MeetingType meetingType = getMeetingTypeById(meetingTypeId);
+
+        if (!meetingType.getUser().getEmail().equals(AuthUtils.getCurrentUserEmail())) {
+            throw new MeetingTypeNotFoundException("Meeting Type Not Found");
+        }
+
+        if (updateRequest.getTitle() != null) {
+            meetingType.setTitle(updateRequest.getTitle());
+        }
+
+        if (updateRequest.getDescription() != null) {
+            meetingType.setDescription(updateRequest.getDescription());
+        }
+
+        if (updateRequest.getDurationMinutes() != null) {
+            meetingType.setDurationMinutes(updateRequest.getDurationMinutes());
+        }
+
+        if (updateRequest.getMaxDaysInAdvance() != null) {
+            meetingType.setMaxDaysInAdvance(updateRequest.getMaxDaysInAdvance());
+        }
+
+//        if (updateRequest.getLocations() != null) {
+//            updateLocations(meetingType, updateRequest.getLocations());
+//        }
+//
+//        if (updateRequest.getTimeRanges() != null) {
+//            updateTimeRanges(meetingType, updateRequest.getTimeRanges());
+//        }
+
+        return toMeetingTypeResponse(meetingTypeRepository.save(meetingType));
+    }
+
+//    private void updateLocations(MeetingType meetingType, List<LocationRequest> locationRequests) {
+//        List<MeetingTypeLocation> updatedLocations = meetingType.getLocations().stream()
+//                .filter(location -> locationRequests.stream()
+//                        .noneMatch(request -> Boolean.TRUE.equals(request.getDelete()) && request.getId().equals(location.getId())))
+//                .collect(Collectors.toList());
+//
+//        for (LocationRequest locationRequest : locationRequests) {
+//            if (Boolean.TRUE.equals(locationRequest.getDelete())) {
+//                continue;
+//            }
+//
+//            if (locationRequest.getId() == null) {
+//                // Если ID нет, добавляем новую локацию
+//                MeetingTypeLocation newLocation = new MeetingTypeLocation();
+//                newLocation.setAddress(locationRequest.getAddress());
+//                newLocation.setLocation(locationRequest.getLocation());
+//                updatedLocations.add(newLocation);
+//            } else {
+//                // Обновляем существующую локацию
+//                MeetingTypeLocation existingLocation = meetingType.getLocations().stream()
+//                        .filter(location -> location.getId().equals(locationRequest.getId()))
+//                        .findFirst()
+//                        .orElseThrow(() -> new IllegalArgumentException("Локация с ID " + locationRequest.getId() + " не найдена."));
+//                existingLocation.setAddress(locationRequest.getAddress());
+//            }
+//        }
+//
+//        meetingType.getLocations().clear();
+//        meetingType.getLocations().addAll(updatedLocations);
+//    }
+//
+//    private void updateTimeRanges(MeetingType meetingType, List<MeetingTypeTimeRangeRequest> timeRangeRequests) {
+//        meetingType.getTimeRanges().clear();
+//
+//        // Добавляем новые временные диапазоны
+//        List<MeetingTypeTimeRange> updatedTimeRanges = timeRangeRequests.stream()
+//                .map(timeRangeRequest -> {
+//                    MeetingTypeTimeRange timeRange = new MeetingTypeTimeRange();
+//                    timeRange.setDayOfWeek(timeRangeRequest.getDayOfWeek());
+//                    timeRange.setStartTime(timeRangeRequest.getStartTime());
+//                    timeRange.setEndTime(timeRangeRequest.getEndTime());
+//                    return timeRange;
+//                })
+//                .toList();
+//
+//        meetingType.getTimeRanges().addAll(updatedTimeRanges);
+//    }
 
     @Override
     public List<MeetingType> getAllMeetingTypes() {

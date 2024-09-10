@@ -9,4 +9,6 @@ public class LocationRequest {
     private Long id;
 
     private String address;
+
+    private Boolean delete;
 }
