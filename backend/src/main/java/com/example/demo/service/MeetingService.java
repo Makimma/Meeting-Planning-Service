@@ -9,8 +9,16 @@ import java.util.List;
 
 public interface MeetingService {
     Meeting createMeeting(MeetingPoll meetingPoll, MeetingPollTimeSlot meetingPollTimeSlot);
+
     void deleteMeeting(Long meetingId);
+
     MeetingResponse getMeetingResponseById(Long id);
+
     List<MeetingResponse> getAllUserMeetingResponses();
+
     Meeting getMeetingById(Long id);
+
+    List<MeetingResponse> getUpcomingMeetings();
+
+    List<MeetingResponse> getPastMeetings();
 }

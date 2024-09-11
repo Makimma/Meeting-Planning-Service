@@ -13,9 +13,9 @@ import com.example.demo.service.UserService;
 import com.example.demo.util.AuthUtils;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
+import java.time.ZonedDateTime;
 import java.util.List;
 
 @Service
@@ -30,7 +30,8 @@ public class MeetingServiceImpl implements MeetingService {
     public MeetingServiceImpl(MeetingRepository meetingRepository,
                               GoogleCalendarService googleCalendarService,
                               MeetingParticipantRepository meetingParticipantRepository,
-                              UserService userService, @Qualifier("emailSenderService") EmailSenderService emailSenderService) {
+                              UserService userService,
+                              EmailSenderService emailSenderService) {
         this.meetingRepository = meetingRepository;
         this.googleCalendarService = googleCalendarService;
         this.meetingParticipantRepository = meetingParticipantRepository;
@@ -102,6 +103,22 @@ public class MeetingServiceImpl implements MeetingService {
     public Meeting getMeetingById(Long id) {
         return meetingRepository.findById(id)
                 .orElseThrow(() -> new MeetingNotFoundException("Meeting not found"));
+    }
+
+    @Override
+    public List<MeetingResponse> getUpcomingMeetings() {
+        return meetingRepository.findMeetingsByBeginAtAfter(ZonedDateTime.now())
+                .stream()
+                .map(this::toMeetingResponse)
+                .toList();
+    }
+
+    @Override
+    public List<MeetingResponse> getPastMeetings() {
+        return meetingRepository.findMeetingsByEndAtBefore(ZonedDateTime.now())
+                .stream()
+                .map(this::toMeetingResponse)
+                .toList();
     }
 
     private MeetingResponse toMeetingResponse(Meeting meeting) {
