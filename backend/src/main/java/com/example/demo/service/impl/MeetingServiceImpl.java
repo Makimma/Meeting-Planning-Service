@@ -6,12 +6,14 @@ import com.example.demo.repository.MeetingParticipantRepository;
 import com.example.demo.repository.MeetingRepository;
 import com.example.demo.response.MeetingResponse;
 import com.example.demo.response.ParticipantResponse;
+import com.example.demo.service.EmailSenderService;
 import com.example.demo.service.GoogleCalendarService;
 import com.example.demo.service.MeetingService;
 import com.example.demo.service.UserService;
 import com.example.demo.util.AuthUtils;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -22,16 +24,18 @@ public class MeetingServiceImpl implements MeetingService {
     private final GoogleCalendarService googleCalendarService;
     private final MeetingParticipantRepository meetingParticipantRepository;
     private final UserService userService;
+    private final EmailSenderService emailSenderService;
 
     @Autowired
     public MeetingServiceImpl(MeetingRepository meetingRepository,
                               GoogleCalendarService googleCalendarService,
                               MeetingParticipantRepository meetingParticipantRepository,
-                              UserService userService) {
+                              UserService userService, @Qualifier("emailSenderService") EmailSenderService emailSenderService) {
         this.meetingRepository = meetingRepository;
         this.googleCalendarService = googleCalendarService;
         this.meetingParticipantRepository = meetingParticipantRepository;
         this.userService = userService;
+        this.emailSenderService = emailSenderService;
     }
 
     @Override
@@ -74,6 +78,9 @@ public class MeetingServiceImpl implements MeetingService {
             }
         }
         meetingRepository.delete(meeting);
+        for (MeetingParticipant participant : meeting.getParticipants()) {
+            emailSenderService.sendEmail(participant.getParticipantEmail(), "Meeting has been canceled", "Your meeting " + meeting.getTitle() + " at " + meeting.getBeginAt() + " has been canceled.");
+        }
     }
 
     @Override
